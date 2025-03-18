@@ -13,7 +13,7 @@
 
 3. **Conflict notification:** when a user may need to add an unscheduled static event and there is a conflict that the time is already taken, the calendar will notify the user. In case a more important event with a limited time slot occurs and it cannot be scheduled without rescheduling, the calendar will offer to move the lower priority event if available.
 
-4. **Event Prioritisation:** All static events are prioritised over dynamic events. However, the user also has the ability to specify the priority for dynamic events, which can simplify conflict resolution, and in case of a higher priority event with a narrower time frame in which the event cannot fit, the calendar can offer to move the less significant event.
+4. **Event Prioritisation:** All static events are prioritized over dynamic events. However, the user also has the ability to specify the priority for dynamic events, which can simplify conflict resolution, and in case of a higher priority event with a narrower time frame in which the event cannot fit, the calendar can offer to move the less significant event.
 
 5. **Maintain an event rescheduling counter:** If a user has been rescheduling an event for a long time the calendar will also notify the user.
 
@@ -38,5 +38,5 @@ Our app should help people with busy schedules to optimally organise their lives
 2.	Ability to schedule an event in 2 ways: via calendar, when the user searches for this or that date by flipping the calendar, or via dynamic window, so that the user does not have to flip the calendar manually, just set the date in the format 02.04.2025 in the window and all the data to the event and it will be automatically added to the calendar.
 3. Optimised date suggestion taking into account the conditions set by the user
 4.	If there are conflicts between events, the application should notify the user and suggest new date options for rescheduling.
-5.	Ability to prioritise events
+5.	Ability to prioritize events
 6.	Taking priority into account when selecting optimal dates and organising 
