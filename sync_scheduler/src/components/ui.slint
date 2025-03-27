@@ -33,6 +33,10 @@ export component CalendarWindow inherits Window {
   
   in property <[string]> day-names: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   in property <[[SlintDay]]> weeks;
+  in property <string> date_title;
+  
+  callback next-month;
+  callback previous-month;
   
   VerticalBox {
       spacing: 0;
@@ -47,9 +51,10 @@ export component CalendarWindow inherits Window {
           Button { 
               text: "◀"; 
               width: 50px;
+              clicked => { root.previous-month(); }
           }
           Text { 
-              text: "March 2023"; 
+              text: root.date_title; 
               font-size: 20px; 
               horizontal-alignment: center; 
               vertical-alignment: center; 
@@ -58,6 +63,7 @@ export component CalendarWindow inherits Window {
           Button { 
               text: "▶"; 
               width: 50px;
+              clicked => { root.next-month(); }
           }
       }
 
@@ -83,7 +89,6 @@ export component CalendarWindow inherits Window {
           spacing: 0;
           padding: 0;
           for week in weeks: HorizontalBox {
-              // height: 20%;
               spacing: 0;
               padding: 0;
               for day[i] in week: DayCell {
