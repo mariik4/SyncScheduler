@@ -172,7 +172,7 @@ fn main() {
     let calendar_state = Rc::new(RefCell::new(CalendarState::new(
         current_month,
         current_year,
-    ))); // Initial month/year
+    )));
 
     // Set calendar initial state
     {
