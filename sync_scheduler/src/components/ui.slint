@@ -1,0 +1,96 @@
+import { VerticalBox, HorizontalBox, GridBox, Button } from "std-widgets.slint";
+
+struct SlintDay {
+  day-number: int,
+  is_current_date: bool
+}
+
+component DayCell inherits Rectangle {
+  in property <int> day-number;
+  background: #ffffff;
+  border-width: 1px;
+  border-color: #e0e0e0;
+  
+  VerticalBox {
+      Text {
+          text: day-number > 0 ? day-number : "";
+          horizontal-alignment: right;
+          padding: 5px;
+          color: red;
+      }
+      Rectangle {
+          height: 10px;
+          background: #4285f4;
+      }
+  }
+}
+
+export component CalendarWindow inherits Window {
+  preferred-width: 1200px;
+  preferred-height: 1000px;
+  full-screen: true;
+  padding: 0;
+  
+  in property <[string]> day-names: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  in property <[[SlintDay]]> weeks;
+  
+  VerticalBox {
+      spacing: 0;
+      padding: 0;
+      
+      // Month header
+      HorizontalBox {
+          width: 100%; 
+          height: 50px;
+          spacing: 0;
+          padding: 0;
+          Button { 
+              text: "◀"; 
+              width: 50px;
+          }
+          Text { 
+              text: "March 2023"; 
+              font-size: 20px; 
+              horizontal-alignment: center; 
+              vertical-alignment: center; 
+              color: white;
+          }
+          Button { 
+              text: "▶"; 
+              width: 50px;
+          }
+      }
+
+      // Weekday headers
+      HorizontalBox {
+          height: 30px;
+          width: 100%;
+          spacing: 0;
+          padding: 0;
+          for day in day-names: Rectangle {
+              background: #4285f4;
+              Text {
+                  text: day;
+                  horizontal-alignment: center;
+                  vertical-alignment: center;
+                  color: white;
+              }
+          }
+      }
+
+      VerticalBox {
+          width: 100%;
+          spacing: 0;
+          padding: 0;
+          for week in weeks: HorizontalBox {
+              // height: 20%;
+              spacing: 0;
+              padding: 0;
+              for day[i] in week: DayCell {
+                  width: 14.28%;
+                  day-number: day.day-number;
+              }
+          }
+      }
+  }
+}
