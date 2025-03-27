@@ -12,6 +12,7 @@ pub struct DayInfo {
     pub weekday_index: u32,
 }
 
+#[derive(Clone)]
 pub struct SlintDayInfo {
     pub day_number: u32,
     pub is_current_date: bool,
@@ -28,21 +29,27 @@ impl CalendarState {
     }
 
     pub fn next_month(&mut self) {
-        let (month, year) = calculate_next_month_and_year(self.month, self.year);
-        self.month = month;
-        self.year = year;
+        if self.month == 12 {
+            self.month = 1;
+            self.year += 1;
+        } else {
+            self.month += 1;
+        }
     }
 
     pub fn previous_month(&mut self) {
-        let (month, year) = calculate_previous_month_and_year(self.month, self.year);
-        self.month = month;
-        self.year = year;
+        if self.month == 1 {
+            self.month = 12;
+            self.year -= 1;
+        } else {
+            self.month -= 1;
+        }
     }
 }
 
-pub fn get_days_of_month(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
+pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
     let first_day = NaiveDate::from_ymd_opt(year, month, 1).expect("Invalid date");
-    let days_in_month = get_days_from_month(year, month) as u32;
+    let days_in_month = get_days_count_in_month(year, month) as u32;
 
     let mut weeks = Vec::new();
     let mut weeks_counter = 0;
@@ -53,9 +60,13 @@ pub fn get_days_of_month(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
             .checked_add_days(Days::new(i as u64))
             .expect("Date overflow");
 
+        // insert 0 to the beginning of the week array
+        // when the month does not start from the Monday
+        // Neede for the renderring offset
         if i == 0 {
             weeks.push(Vec::new() as Vec<DayInfo>);
-            for j in 0..date.weekday().num_days_from_monday() {
+            for _ in 0..date.weekday().num_days_from_monday() {
+                // Month beggining empty day value
                 let day_info = DayInfo {
                     day_number: 0,
                     full_date: None,
@@ -65,7 +76,7 @@ pub fn get_days_of_month(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
             }
         }
 
-        // insert new week array if week_day index equals 0 (Monday)
+        // Start filling array for the next week, since the day is Monday (index = 0)
         if date.weekday().num_days_from_monday() == 0 {
             weeks_counter += 1;
             weeks.push(Vec::new() as Vec<DayInfo>);
@@ -77,10 +88,11 @@ pub fn get_days_of_month(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
             weekday_index: date.weekday().num_days_from_monday(),
         };
         weeks[weeks_counter].push(day_info);
-
-        remained_days = date.weekday().num_days_from_sunday();
+        remained_days = 6 - date.weekday().num_days_from_monday();
     }
 
+    // Fill the rest of the week with the empty daysa=1, b=4, c=4, d=-1, e=-14, мені потрібні графіки до цих задач, але замість x-y+14=0 використай x=y+14, і заштрихуй, будь ласка, область перетину
+    // if the month is finished not in Sunday
     for _ in 0..remained_days {
         weeks[weeks_counter].push(DayInfo {
             day_number: 0,
@@ -92,22 +104,7 @@ pub fn get_days_of_month(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
     weeks
 }
 
-pub fn calculate_next_month_and_year(month: u32, year: i32) -> (u32, i32) {
-    if month == 12 {
-        (1, year + 1)
-    } else {
-        (month + 1, year)
-    }
-}
-pub fn calculate_previous_month_and_year(month: u32, year: i32) -> (u32, i32) {
-    if month == 1 {
-        (12, year - 1)
-    } else {
-        (month - 1, year)
-    }
-}
-
-pub fn get_days_from_month(year: i32, month: u32) -> i64 {
+pub fn get_days_count_in_month(year: i32, month: u32) -> i64 {
     NaiveDate::from_ymd_opt(
         match month {
             12 => year + 1,
@@ -119,45 +116,35 @@ pub fn get_days_from_month(year: i32, month: u32) -> i64 {
         },
         1,
     )
-    .expect("huina")
-    .signed_duration_since(NaiveDate::from_ymd(year, month, 1))
+    .expect("Date issue")
+    .signed_duration_since(NaiveDate::from_ymd_opt(year, month, 1).expect("Invalid date"))
     .num_days()
 }
 
-pub fn format_slint_data(weeks: Vec<Vec<DayInfo>>) -> Vec<Vec<SlintDayInfo>> {
+pub fn format_slint_data(
+    weeks: Vec<Vec<DayInfo>>,
+) -> std::vec::Vec<slint::ModelRc<slint_generatedCalendarWindow::SlintDay>> {
     weeks
-        .into_iter()
-        .map(|week| {
-            week.into_iter()
-                .map(|day| SlintDayInfo {
-                    day_number: day.day_number,
-                    is_current_date: false,
-                })
-                .collect()
-        })
-        .collect()
-}
-
-fn update_calendar(calendar_window: &CalendarWindow, month: u32, year: i32) {
-    let weeks = get_days_of_month(year, month);
-    let slint_weeks = format_slint_data(weeks);
-    let nested_model: Vec<_> = slint_weeks
         .into_iter()
         .map(|week| {
             ModelRc::new(VecModel::from(
                 week.into_iter()
                     .map(|day| slint_generatedCalendarWindow::SlintDay {
                         day_number: day.day_number as i32,
-                        is_current_date: day.is_current_date,
+                        is_current_date: false,
                     })
                     .collect::<Vec<_>>(),
             ))
         })
-        .collect();
-    let slint_weeks_model = ModelRc::new(VecModel::from(nested_model));
+        .collect()
+}
+
+fn update_calendar_gui(calendar_window: &CalendarWindow, month: u32, year: i32) {
+    let weeks = get_month_data(year, month);
+    let slint_weeks = format_slint_data(weeks);
+    let slint_weeks_model = ModelRc::new(VecModel::from(slint_weeks));
     calendar_window.set_weeks(slint_weeks_model);
 
-    // Update month/year title
     let month_names = [
         "January",
         "February",
@@ -178,31 +165,43 @@ fn update_calendar(calendar_window: &CalendarWindow, month: u32, year: i32) {
 
 fn main() {
     let calendar_window = CalendarWindow::new().unwrap();
-    let calendar_state = Rc::new(RefCell::new(CalendarState::new(3, 2025))); // Initial month/year
+    let current_month = chrono::offset::Local::now().month();
+    let current_year = chrono::offset::Local::now().year();
+    // Create multi mutable reference to the calendar state
+    // to be able to pass the state to the callbacks
+    let calendar_state = Rc::new(RefCell::new(CalendarState::new(
+        current_month,
+        current_year,
+    ))); // Initial month/year
 
-    // Initial update
+    // Set calendar initial state
     {
         let state = calendar_state.borrow();
-        update_calendar(&calendar_window, state.month, state.year);
+        update_calendar_gui(&calendar_window, state.month, state.year);
     }
 
-    // Setup button callbacks
+    // Setup next month button callback
     let weak_window = calendar_window.as_weak();
     let state_clone = Rc::clone(&calendar_state);
+    // Borrow ownership of all variables to ensure their lifecycle, when buttons are clicked
+    // (since it can be out of the scope of the main variable)
     calendar_window.on_next_month(move || {
         let window = weak_window.unwrap();
         let mut state = state_clone.borrow_mut();
         state.next_month();
-        update_calendar(&window, state.month, state.year);
+        update_calendar_gui(&window, state.month, state.year);
     });
 
+    // Setup previous month button callback
     let weak_window = calendar_window.as_weak();
     let state_clone = Rc::clone(&calendar_state);
+    // Borrow ownership of all variables to ensure their lifecycle, when buttons are clicked
+    // (since it can be out of the scope of the main variable)
     calendar_window.on_previous_month(move || {
         let window = weak_window.unwrap();
         let mut state = state_clone.borrow_mut();
         state.previous_month();
-        update_calendar(&window, state.month, state.year);
+        update_calendar_gui(&window, state.month, state.year);
     });
 
     calendar_window.run().unwrap();
