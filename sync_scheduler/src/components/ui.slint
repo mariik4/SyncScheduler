@@ -3,7 +3,7 @@ import { VerticalBox, HorizontalBox, GridBox, Button } from "std-widgets.slint";
 struct SlintDay {
   id: string,
   day-number: int,
-  is_current_date: bool,
+  is_today: bool,
   is_selected: bool
 }
 
@@ -11,6 +11,7 @@ component DayCell inherits Rectangle {
   in property <int> day-number;
   in property <string> date-id;
   in property <bool> is_selected;
+  in property <bool> is_today;
 
   property<bool> hover <=> ta.has-hover;
 
@@ -36,7 +37,7 @@ component DayCell inherits Rectangle {
         width: 35px;
         y: 0;
         x: parent.width - self.width;
-        background: is_selected ? #5a60ee : transparent;
+        background: is_selected ? #5a60ee : (is_today ? #b6b7e4 : transparent);
         animate background {
           duration: 200ms;
           easing: ease-in-out;
@@ -70,7 +71,7 @@ component DayCell inherits Rectangle {
 }
 
 component CalendarTemplate inherits Rectangle {
-  in property <[string]> day-names: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   in property <[[SlintDay]]> weeks;
   in property <string> date_title;
   
@@ -142,6 +143,7 @@ component CalendarTemplate inherits Rectangle {
                 width: 14.28%;
                 day-number: day.day-number;
                 is_selected: day.is_selected;
+                is_today: day.is_today;
                 select_date => { root.select_date(day.id); }
             }
         }
@@ -176,7 +178,7 @@ export component CalendarWindow inherits Window {
   full-screen: true;
   padding: 0;
 
-  in property <[string]> day-names: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   in property <[[SlintDay]]> weeks;
   in property <string> date_title;
   in property <string> selected_date;

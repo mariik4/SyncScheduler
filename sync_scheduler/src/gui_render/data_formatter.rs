@@ -8,9 +8,9 @@ pub fn format_slint_data(
                 week.iter()
                     .map(|day| slint_generatedCalendarWindow::SlintDay {
                         day_number: day.day_number as i32,
-                        is_current_date: false,
                         id: day.id.to_string().into(),
                         is_selected: day.is_selectd,
+                        is_today: day.is_today,
                     })
                     .collect::<Vec<_>>(),
             ))

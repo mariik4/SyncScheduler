@@ -9,6 +9,7 @@ pub struct DayInfo {
     pub full_date: Option<NaiveDate>,
     pub weekday_index: u32,
     pub is_selectd: bool,
+    pub is_today: bool,
 }
 
 pub struct CalendarState {
@@ -23,12 +24,18 @@ impl CalendarState {
         let current_month = chrono::offset::Local::now().month();
         let current_year = chrono::offset::Local::now().year();
 
-        let weeks = get_month_data(current_year, current_month);
+        let (weeks, today) = get_month_data(current_year, current_month);
+        let mut selected_date = None;
+        if let Some(mut day) = today {
+            day.is_selectd = true;
+            selected_date = Some(day);
+            println!("Today: {:?}", selected_date);
+        }
         Self {
             month: current_month,
             year: current_year,
             weeks,
-            selected_date: None,
+            selected_date,
         }
     }
 
@@ -53,11 +60,14 @@ impl CalendarState {
     }
 
     fn update_month_data(&mut self) {
-        self.weeks = get_month_data(self.year, self.month);
+        (self.weeks, _) = get_month_data(self.year, self.month);
     }
 
-    pub fn get_date_info_by_id(&mut self, id: &str) {
+    pub fn select_date(&mut self, id: &str) {
         let prev_date_id = self.selected_date.as_ref().map(|day| day.id.clone());
+        if prev_date_id.as_deref() == Some(id) {
+            return;
+        }
 
         for week in self.weeks.iter_mut() {
             for day in week.iter_mut() {

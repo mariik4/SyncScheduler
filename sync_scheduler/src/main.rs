@@ -1,5 +1,4 @@
 include!("./gui_render/calendar_render.rs");
-include!("./gui_render/selected_date.rs");
 include!("./gui_render/data_formatter.rs");
 include!("./calendar/calendar_state.rs");
 
@@ -14,6 +13,7 @@ slint::include_modules!();
 
 fn main() {
     let calendar_window = CalendarWindow::new().unwrap();
+    calendar_window.window().set_maximized(true);
     // Create multi mutable reference to the calendar state
     // to be able to pass the state to the callbacks
     let calendar_state = Rc::new(RefCell::new(CalendarState::new()));
@@ -23,7 +23,7 @@ fn main() {
         // due to the mutable state in the code below I create mutable Ref,
         // but in fact there is nothing to mutate
         let state = calendar_state.borrow_mut();
-        update_calendar_gui(&calendar_window, state);
+        calendar_render(&calendar_window, state);
     }
 
     // Setup next month button callback
@@ -35,7 +35,7 @@ fn main() {
         let window = weak_window.unwrap();
         let mut state = state_clone.borrow_mut();
         state.next_month();
-        update_calendar_gui(&window, state);
+        calendar_render(&window, state);
     });
 
     // Setup previous month button callback
@@ -47,15 +47,16 @@ fn main() {
         let window = weak_window.unwrap();
         let mut state = state_clone.borrow_mut();
         state.previous_month();
-        update_calendar_gui(&window, state);
+        calendar_render(&window, state);
     });
 
     let weak_window = calendar_window.as_weak();
     let state_clone_for_select = Rc::clone(&calendar_state);
     calendar_window.on_select_date(move |day_id| {
         let window = weak_window.unwrap();
-        let state = state_clone_for_select.borrow_mut();
-        update_selected_date_gui(&window, state, &day_id);
+        let mut state = state_clone_for_select.borrow_mut();
+        state.select_date(&day_id);
+        calendar_render(&window, state);
     });
 
     calendar_window.run().unwrap();

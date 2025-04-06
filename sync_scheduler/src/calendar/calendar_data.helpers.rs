@@ -1,8 +1,10 @@
 use chrono::Days;
 
-pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
+pub fn get_month_data(year: i32, month: u32) -> (Vec<Vec<DayInfo>>, Option<DayInfo>) {
     let first_day = NaiveDate::from_ymd_opt(year, month, 1).expect("Invalid date");
     let days_in_month = get_days_count_in_month(year, month) as u32;
+    let today = chrono::offset::Local::now().date_naive();
+    let mut today_obj: Option<DayInfo> = None;
 
     let mut weeks = Vec::new();
     let mut weeks_counter = 0;
@@ -15,7 +17,7 @@ pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
 
         // insert 0 to the beginning of the week array
         // when the month does not start from the Monday
-        // Neede for the renderring offset
+        // Need for the renderring offset
         if i == 0 {
             weeks.push(Vec::new() as Vec<DayInfo>);
             for _ in 0..date.weekday().num_days_from_monday() {
@@ -26,6 +28,7 @@ pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
                     full_date: None,
                     weekday_index: i,
                     is_selectd: false,
+                    is_today: false,
                 };
                 weeks[weeks_counter].push(day_info)
             }
@@ -43,7 +46,11 @@ pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
             full_date: Some(date),
             weekday_index: date.weekday().num_days_from_monday(),
             is_selectd: false,
+            is_today: date == today,
         };
+        if day_info.is_today {
+            today_obj = Some(day_info.clone());
+        }
         weeks[weeks_counter].push(day_info);
         remained_days = 6 - date.weekday().num_days_from_monday();
     }
@@ -57,10 +64,11 @@ pub fn get_month_data(year: i32, month: u32) -> Vec<Vec<DayInfo>> {
             full_date: None,
             weekday_index: 0,
             is_selectd: false,
+            is_today: false,
         });
     }
 
-    weeks
+    (weeks, today_obj)
 }
 
 pub fn get_days_count_in_month(year: i32, month: u32) -> i64 {
