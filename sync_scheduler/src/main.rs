@@ -30,7 +30,7 @@ fn main() {
     let weak_window = calendar_window.as_weak();
     let state_clone = Rc::clone(&calendar_state);
     // Borrow ownership of all variables to ensure their lifecycle, when buttons are clicked
-    // (since it can be out of the scope of the main variable)
+    // (since it can be out of the scope of the main variable) ass
     calendar_window.on_next_month(move || {
         let window = weak_window.unwrap();
         let mut state = state_clone.borrow_mut();
