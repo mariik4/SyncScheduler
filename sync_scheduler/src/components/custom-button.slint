@@ -1,0 +1,34 @@
+export component CustomButton inherits TouchArea {
+    height: 24px;
+    min-width: 24px;
+    in property <string> text <=> i-text.text;
+    in property <brush> background <=> i-container.background;
+    in property <brush> color <=> i-text.color;
+    in property <brush> pressed_background <=> i-container.background;
+    in property <brush> pressed_color <=> i-text.color;
+
+    i-container := Rectangle {
+        border-radius: 4px;
+        background: #2E3445;
+
+        HorizontalLayout {
+            padding: 4px;
+
+            i-text := Text {
+                color: #D5E2FA;
+                horizontal-alignment: center;
+                font-size: 14px;
+                vertical-alignment: center;
+            }
+        }
+
+        animate background { duration: 150ms; }
+    }
+
+    states [
+        pressed when root.pressed: {
+            i-container.background: gray;
+            i-text.color: #000000;
+        }
+    ]
+}

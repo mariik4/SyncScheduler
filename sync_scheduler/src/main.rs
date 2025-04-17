@@ -1,13 +1,15 @@
 include!("./gui_render/calendar_render.rs");
 include!("./gui_render/data_formatter.rs");
 include!("./calendar/calendar_state.rs");
+include!("./events/events.helpers.rs");
+include!("./events/events_state.rs");
 
 use std::{
     cell::{RefCell, RefMut},
     rc::Rc,
 };
 
-use slint::{ModelRc, VecModel};
+use slint::{ModelRc, SharedString, VecModel};
 
 slint::include_modules!();
 
@@ -17,6 +19,7 @@ fn main() {
     // Create multi mutable reference to the calendar state
     // to be able to pass the state to the callbacks
     let calendar_state = Rc::new(RefCell::new(CalendarState::new()));
+    let events_state: Rc<RefCell<EventsState>> = Rc::new(RefCell::new(EventsState::new()));
 
     // Set calendar initial state
     {
@@ -58,6 +61,32 @@ fn main() {
         state.select_date(&day_id);
         calendar_render(&window, state);
     });
+
+    let events_state_clone = Rc::clone(&events_state);
+    let calendar_state_clone = Rc::clone(&calendar_state);
+    calendar_window.on_collect_static(
+        move |name: SharedString,
+              description: SharedString,
+              start_date: Date,
+              end_date: Date,
+              start_time: Time,
+              end_time: Time| {
+            let event = create_new_static_event(
+                name,
+                description,
+                start_date,
+                end_date,
+                start_time,
+                end_time,
+            );
+
+            print!("Creating new static event\n");
+
+            let mut test = events_state_clone.borrow_mut();
+            test.add_event(event);
+            test.fetch_events(calendar_state_clone.borrow().selected_date.clone().unwrap());
+        },
+    );
 
     calendar_window.run().unwrap();
 }

@@ -1,0 +1,463 @@
+import { TabWidget, DatePickerPopup, TimePickerPopup, Time, Date, Button, VerticalBox, HorizontalBox, CheckBox, LineEdit } from "std-widgets.slint";
+import { CustomButton } from "custom-button.slint";
+
+component StyledButton inherits CustomButton {
+    width: 150px;
+    height: 36px;
+}
+
+component Datepicker inherits Rectangle {
+    in property <string> button_text;
+    out property <Date> selected_date;
+    padding: 0;
+    datepicker-button := StyledButton {
+        text: button_text;
+        clicked => {
+            date-picker.show();
+        }
+    }
+
+    date-picker := DatePickerPopup {
+        close-policy: PopupClosePolicy.no-auto-close;
+        accepted(date) => {
+            selected_date = date;
+            datepicker-button.text = date.day + "." + date.month + "." + date.year;
+            ;
+            date-picker.close();
+        }
+        canceled => {
+            date-picker.close();
+        }
+    }
+}
+
+component Timepicker inherits Rectangle {
+    in property <string> button_text;
+    out property <Time> selected_time;
+    padding: 0;
+    timepicker-button := StyledButton {
+        text: button_text;
+        clicked => {
+            time-picker.show();
+        }
+    }
+
+    time-picker := TimePickerPopup {
+        close-policy: PopupClosePolicy.no-auto-close;
+        accepted(time) => {
+            selected_time = time;
+            timepicker-button.text = time.hour + ":" + (time.minute < 10 ? "0" + time.minute : time.minute);
+            time-picker.close();
+        }
+        canceled => {
+            time-picker.close();
+        }
+    }
+}
+
+component SelectedWeekdays inherits GridLayout {
+    padding: 0;
+    spacing-horizontal: 10px;
+    spacing-vertical: 5px;
+    height: 70px;
+
+    Row {
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Mo";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Tu";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "We";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Th";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Fr";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Sa";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            Text {
+                text: "Su";
+                font-size: 14px;
+                color: #2E3445;
+            }
+        }
+    }
+
+    Row {
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+
+        Rectangle {
+            padding: 0;
+            CheckBox {
+                padding: 0;
+                checked: true;
+            }
+        }
+    }
+}
+
+component ModalWindow inherits Rectangle {
+    height: 100%;
+    width: 100%;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    border-width: 1px;
+    border-radius: 12px;
+    padding: 20px;
+
+    drop-shadow-color: #2E3445;
+    drop-shadow-blur: 130px;
+
+    callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback request-close();
+
+    TabWidget {
+        width: 100%;
+        height: 100%;
+        Tab {
+            title: "Static";
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 20px;
+                spacing: 50px;
+                y: 50px;
+
+                VerticalBox {
+                    padding: 0;
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+                        event-name := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Event name (required)";
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+                        event-description := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Event description (optional)";
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    padding: 0;
+                    alignment: space-between;
+
+                    // Date Period Section
+                    VerticalBox {
+                        padding: 0;
+                        spacing: 5px;
+                        height: 150px;
+                        width: 200px;
+                        alignment: start;
+
+                        HorizontalBox {
+                            padding: 0;
+                            height: 40px;
+                            width: 120px;
+                            alignment: start;
+                            Text {
+                                text: "Select date period:";
+                                font-size: 18px;
+                                font-weight: 500;
+                                color: #2E3445;
+                                horizontal-alignment: left;
+                            }
+                        }
+
+                        VerticalBox {
+                            padding: 0;
+                            spacing: 8px;
+                            height: 100px;
+                            alignment: center;
+                            HorizontalBox {
+                                padding: 0;
+                                height: 40px;
+                                spacing: 30px;
+                                alignment: start;
+
+                                Rectangle {
+                                    width: 70px;
+                                    padding: 0;
+                                    Text {
+                                        text: "From:";
+                                        color: #4b5563;
+                                    }
+                                }
+
+                                start-date := Datepicker {
+                                    button_text: "Start date";
+                                }
+                            }
+
+                            HorizontalBox {
+                                padding: 0;
+                                spacing: 30px;
+                                height: 40px;
+                                alignment: start;
+
+                                Rectangle {
+                                    width: 70px;
+                                    padding: 0;
+                                    Text {
+                                        text: "To:";
+                                        color: #4b5563;
+                                    }
+                                }
+
+                                end-date := Datepicker {
+                                    button_text: "End date";
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 150px;
+                        padding: 0;
+                        width: 2px;
+                        background: #2E3445;
+                    }
+
+                    // Time Period Section
+                    VerticalBox {
+                        padding: 0;
+                        spacing: 5px;
+                        height: 150px;
+                        width: 250px;
+                        alignment: start;
+                        HorizontalBox {
+                            height: 40px;
+                            width: 120px;
+                            alignment: start;
+                            padding: 0;
+                            Text {
+                                text: "Select time period:";
+                                font-size: 18px;
+                                font-weight: 500;
+                                color: #2E3445;
+                                horizontal-alignment: left;
+                            }
+                        }
+
+                        VerticalBox {
+                            height: 100px;
+                            padding: 0;
+                            spacing: 8px;
+                            alignment: center;
+                            HorizontalBox {
+                                padding: 0;
+                                spacing: 30px;
+                                height: 40px;
+                                alignment: start;
+                                Rectangle {
+                                    padding: 0;
+                                    width: 70px;
+                                    Text {
+                                        text: "From:";
+                                        color: #4b5563;
+                                    }
+                                }
+
+                                start-time := Timepicker {
+                                    button_text: "Start time";
+                                }
+                            }
+
+                            HorizontalBox {
+                                padding: 0;
+                                spacing: 30px;
+                                height: 40px;
+                                alignment: start;
+                                Rectangle {
+                                    padding: 0;
+                                    width: 70px;
+                                    Text {
+                                        text: "To:";
+                                        color: #4b5563;
+                                    }
+                                }
+
+                                end-time := Timepicker {
+                                    button_text: "End time";
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: end;
+                    padding: 0;
+                    padding-top: 20px;
+                    width: 100%;
+                    CustomButton {
+                        text: "Cancel";
+                        width: 100px;
+                        height: 36px;
+                        clicked => {
+                            request-close();
+                        }
+                    }
+
+                    CustomButton {
+                        text: "Create";
+                        width: 100px;
+                        height: 36px;
+                        clicked => {
+                            collect-static-event-data(
+                                event-name.text,
+                                event-description.text,
+                                start-date.selected_date,
+                                end-date.selected_date,
+                                start-time.selected_time,
+                                end-time.selected_time)
+                        }
+                    }
+                }
+            }
+        }
+
+        Tab {
+            title: "Dynamic";
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 16px;
+                spacing: 24px;
+
+                Text {
+                    text: "Dynamic content goes here";
+                    font-size: 18px;
+                    font-weight: 500;
+                    color: #2E3445;
+                }
+
+                HorizontalBox {
+                    padding: 0;
+                    spacing: 20px;
+                    alignment: start;
+                    Rectangle {
+                        padding: 0;
+                        Text {
+                            padding: 0;
+                            text: "Select preferred weekdays:";
+                            font-size: 18px;
+                            font-weight: 500;
+                            color: #2E3445;
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        SelectedWeekdays {
+                            padding: 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export { ModalWindow }
