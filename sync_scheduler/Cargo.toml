@@ -7,6 +7,7 @@ edition = "2021"
 chrono = "0.4.40"
 icalendar = "0.16.13"
 slint = "1.10.0"
+slint-viewer = "1.10.0"
 
 [build-dependencies]
 slint-build = "1.10.0"

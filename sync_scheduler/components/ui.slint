@@ -2,11 +2,18 @@ import { VerticalBox, HorizontalBox, GridBox, Button, Date, Time } from "std-wid
 import { ModalWindow } from "modal-window.slint";
 import { CustomButton } from "custom-button.slint";
 
+struct SlintEventPreview {
+    id: string,
+    name: string,
+}
+
 struct SlintDay {
   id: string,
   day-number: int,
   is_today: bool,
-  is_selected: bool}
+  is_selected: bool,
+  events: [SlintEventPreview],
+}
 
 component DayCell inherits Rectangle {
     in property <int> day-number;
@@ -84,7 +91,6 @@ component CalendarTemplate inherits Rectangle {
     VerticalBox {
         spacing: 0;
         padding: 0;
-    
     // Month header
     Rectangle {
             background: white;

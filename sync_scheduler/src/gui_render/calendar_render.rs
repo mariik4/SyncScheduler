@@ -1,7 +1,11 @@
 // since always when wee need to update some data it need rerendering
 // we use calendar render as a main render function,
 // through which we can update all other components data
-fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<CalendarState>) {
+fn calendar_render(
+    calendar_window: &CalendarWindow,
+    calendar_data: RefMut<CalendarState>,
+    events_data: RefMut<EventsState>,
+) {
     let slint_weeks = format_slint_data(&calendar_data.weeks);
     let slint_weeks_model = ModelRc::new(VecModel::from(slint_weeks));
     calendar_window.set_weeks(slint_weeks_model);

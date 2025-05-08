@@ -1,17 +1,3 @@
-include!("./calendar_data.helpers.rs");
-
-use chrono::{Datelike, NaiveDate};
-
-#[derive(Debug, Clone)]
-pub struct DayInfo {
-    pub id: String,
-    pub day_number: u32,
-    pub full_date: Option<NaiveDate>,
-    pub weekday_index: u32,
-    pub is_selectd: bool,
-    pub is_today: bool,
-}
-
 pub struct CalendarState {
     pub month: u32,
     pub year: i32,
@@ -21,16 +7,24 @@ pub struct CalendarState {
 
 impl CalendarState {
     pub fn new() -> Self {
-        let current_month = chrono::offset::Local::now().month();
-        let current_year = chrono::offset::Local::now().year();
+        let now = chrono::Local::now();
+        let current_month = now.month();
+        let current_year = now.year();
 
-        let (weeks, today) = get_month_data(current_year, current_month);
+        let (weeks, today) = match get_month_data(current_year, current_month) {
+            Some((w, t)) => (w, t),
+            None => {
+                eprintln!("Unable to load month data!");
+                return CalendarState::default();
+            }
+        };
+
         let mut selected_date = None;
         if let Some(mut day) = today {
-            day.is_selectd = true;
+            day.is_selected = true;
             selected_date = Some(day);
-            println!("Today: {:?}", selected_date);
         }
+
         Self {
             month: current_month,
             year: current_year,
@@ -60,7 +54,18 @@ impl CalendarState {
     }
 
     fn update_month_data(&mut self) {
-        (self.weeks, _) = get_month_data(self.year, self.month);
+        match get_month_data(self.year, self.month) {
+            Some((weeks, today)) => {
+                self.weeks = weeks;
+                if let Some(mut day) = today {
+                    day.is_selected = true;
+                    self.selected_date = Some(day);
+                }
+            }
+            None => {
+                eprintln!("Failed to update month data");
+            }
+        }
     }
 
     pub fn select_date(&mut self, id: &str) {
@@ -72,12 +77,12 @@ impl CalendarState {
         for week in self.weeks.iter_mut() {
             for day in week.iter_mut() {
                 if day.id == id {
-                    day.is_selectd = true;
+                    day.is_selected = true;
                     self.selected_date = Some(day.clone());
                 }
                 if let Some(ref prev_id) = prev_date_id {
                     if day.id == *prev_id {
-                        day.is_selectd = false;
+                        day.is_selected = false;
                     }
                 }
             }
@@ -89,11 +94,4 @@ impl Default for CalendarState {
     fn default() -> Self {
         Self::new()
     }
-}
-
-// we can use them in the future to get data from the database to the additional fields
-pub struct SelectedDateState {
-    pub selected_date: DayInfo,
-    // in the future we can pass here the events for the selected date
-    // pub events: Vec<String>,
 }

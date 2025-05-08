@@ -1,8 +1,8 @@
 use chrono::Days;
 
-pub fn get_month_data(year: i32, month: u32) -> (Vec<Vec<DayInfo>>, Option<DayInfo>) {
-    let first_day = NaiveDate::from_ymd_opt(year, month, 1).expect("Invalid date");
-    let days_in_month = get_days_count_in_month(year, month) as u32;
+pub fn get_month_data(year: i32, month: u32) -> Option<(Vec<Vec<DayInfo>>, Option<DayInfo>)> {
+    let first_day = NaiveDate::from_ymd_opt(year, month, 1)?;
+    let days_in_month = get_days_count_in_month(year, month)? as u32;
     let today = chrono::offset::Local::now().date_naive();
     let mut today_obj: Option<DayInfo> = None;
 
@@ -27,8 +27,9 @@ pub fn get_month_data(year: i32, month: u32) -> (Vec<Vec<DayInfo>>, Option<DayIn
                     day_number: 0,
                     full_date: None,
                     weekday_index: i,
-                    is_selectd: false,
+                    is_selected: false,
                     is_today: false,
+                    events_preview: None,
                 };
                 weeks[weeks_counter].push(day_info)
             }
@@ -45,8 +46,12 @@ pub fn get_month_data(year: i32, month: u32) -> (Vec<Vec<DayInfo>>, Option<DayIn
             day_number: date.day(),
             full_date: Some(date),
             weekday_index: date.weekday().num_days_from_monday(),
-            is_selectd: false,
+            is_selected: false,
             is_today: date == today,
+            events_preview: Some(DayEventsPreview {
+                events: fetch_events_preview_by_date(date),
+                count: 0,
+            }),
         };
         if day_info.is_today {
             today_obj = Some(day_info.clone());
@@ -63,16 +68,18 @@ pub fn get_month_data(year: i32, month: u32) -> (Vec<Vec<DayInfo>>, Option<DayIn
             day_number: 0,
             full_date: None,
             weekday_index: 0,
-            is_selectd: false,
+            is_selected: false,
             is_today: false,
+            events_preview: None,
         });
     }
 
-    (weeks, today_obj)
+    Some((weeks, today_obj))
 }
 
-pub fn get_days_count_in_month(year: i32, month: u32) -> i64 {
-    NaiveDate::from_ymd_opt(
+pub fn get_days_count_in_month(year: i32, month: u32) -> Option<i64> {
+    let month_start_date = NaiveDate::from_ymd_opt(year, month, 1)?;
+    let month = NaiveDate::from_ymd_opt(
         match month {
             12 => year + 1,
             _ => year,
@@ -82,8 +89,7 @@ pub fn get_days_count_in_month(year: i32, month: u32) -> i64 {
             _ => month + 1,
         },
         1,
-    )
-    .expect("Date issue")
-    .signed_duration_since(NaiveDate::from_ymd_opt(year, month, 1).expect("Invalid date"))
-    .num_days()
+    )?;
+
+    Some(month.signed_duration_since(month_start_date).num_days())
 }
