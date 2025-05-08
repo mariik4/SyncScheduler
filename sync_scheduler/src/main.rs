@@ -1,17 +1,21 @@
 include!("./gui_render/calendar_render.rs");
 include!("./gui_render/data_formatter.rs");
 include!("./calendar/calendar_state.rs");
+include!("./database/db_functions.rs");
 
+use chrono::{NaiveDateTime, NaiveTime};
+use slint::{ModelRc, VecModel};
 use std::{
     cell::{RefCell, RefMut},
     rc::Rc,
 };
 
-use slint::{ModelRc, VecModel};
-
 slint::include_modules!();
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    dotenv().ok();
+
     let calendar_window = CalendarWindow::new().unwrap();
     calendar_window.window().set_maximized(true);
     // Create multi mutable reference to the calendar state
@@ -58,6 +62,17 @@ fn main() {
         state.select_date(&day_id);
         calendar_render(&window, state);
     });
+
+    get_events_in_day(Uuid::nil(), NaiveDate::from_ymd_opt(2025, 4, 18).unwrap())
+        .await
+        .unwrap()
+        .iter()
+        .for_each(|event| {
+            println!(
+                "Event: {} - {} - {}",
+                event.name, event.start_time, event.end_time
+            );
+        });
 
     calendar_window.run().unwrap();
 }
