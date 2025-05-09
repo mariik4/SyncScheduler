@@ -6,10 +6,13 @@ export component CustomButton inherits TouchArea {
     in property <brush> color <=> i-text.color;
     in property <brush> pressed_background <=> i-container.background;
     in property <brush> pressed_color <=> i-text.color;
+    in property <brush> border-color;
 
     i-container := Rectangle {
         border-radius: 4px;
         background: #2E3445;
+        border-width: 2px;
+        border-color: border-color;
 
         HorizontalLayout {
             padding: 4px;

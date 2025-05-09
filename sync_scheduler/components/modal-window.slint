@@ -2,14 +2,20 @@ import { TabWidget, DatePickerPopup, TimePickerPopup, Time, Date, Button, Vertic
 import { CustomButton } from "custom-button.slint";
 
 component StyledButton inherits CustomButton {
-    width: 150px;
-    height: 36px;
+    width: 100%;
+    height: 100%;
 }
 
 component Datepicker inherits Rectangle {
-    in property <string> button_text;
-    out property <Date> selected_date;
+    in-out property <string> button_text;
+    in-out property <Date> selected_date;
+    in-out property <bool> is_valid;
     padding: 0;
+    width: 150px;
+    height: 36px;
+    drop-shadow-blur: is_valid ? 0px : 8px;
+    drop-shadow-color: red;
+
     datepicker-button := StyledButton {
         text: button_text;
         clicked => {
@@ -21,8 +27,8 @@ component Datepicker inherits Rectangle {
         close-policy: PopupClosePolicy.no-auto-close;
         accepted(date) => {
             selected_date = date;
-            datepicker-button.text = date.day + "." + date.month + "." + date.year;
-            ;
+            is_valid = true;
+            button_text = date.day + "." + date.month + "." + date.year;
             date-picker.close();
         }
         canceled => {
@@ -34,7 +40,13 @@ component Datepicker inherits Rectangle {
 component Timepicker inherits Rectangle {
     in property <string> button_text;
     out property <Time> selected_time;
+    in-out property <bool> is_valid;
     padding: 0;
+    width: 150px;
+    height: 36px;
+    drop-shadow-blur: is_valid ? 0px : 8px;
+    drop-shadow-color: red;
+
     timepicker-button := StyledButton {
         text: button_text;
         clicked => {
@@ -46,6 +58,7 @@ component Timepicker inherits Rectangle {
         close-policy: PopupClosePolicy.no-auto-close;
         accepted(time) => {
             selected_time = time;
+            is_valid = true;
             timepicker-button.text = time.hour + ":" + (time.minute < 10 ? "0" + time.minute : time.minute);
             time-picker.close();
         }
@@ -197,6 +210,13 @@ component ModalWindow inherits Rectangle {
     drop-shadow-color: #2E3445;
     drop-shadow-blur: 130px;
 
+    property <bool> nameValid: event_name.text != "";
+    property <bool> startDateValid: start_date.is_valid;
+    property <bool> endDateValid:   end_date.is_valid;
+    property <bool> startTimeValid: start_time.is_valid;
+    property <bool> endTimeValid:   end_time.is_valid;
+    property <bool> staticFormValid: nameValid && startDateValid && endDateValid && startTimeValid && endTimeValid;
+
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback request-close();
 
@@ -218,6 +238,8 @@ component ModalWindow inherits Rectangle {
                         padding: 0;
                         width: 100%;
                         height: 40px;
+                        drop-shadow-color: red;
+                        drop-shadow-blur: nameValid ? 0px : 8px;
                         event-name := LineEdit {
                             font-size: 14px;
                             width: parent.width;
@@ -306,7 +328,9 @@ component ModalWindow inherits Rectangle {
                                 }
 
                                 end-date := Datepicker {
-                                    button_text: "End date";
+                                    button_text: start-date.is_valid ? start-date.button_text : "End date";
+                                    selected_date: start-date.selected_date;
+                                    is_valid: startDateValid;
                                 }
                             }
                         }
@@ -395,6 +419,7 @@ component ModalWindow inherits Rectangle {
                         text: "Cancel";
                         width: 100px;
                         height: 36px;
+                        mouse-cursor: pointer;
                         clicked => {
                             request-close();
                         }
@@ -404,6 +429,11 @@ component ModalWindow inherits Rectangle {
                         text: "Create";
                         width: 100px;
                         height: 36px;
+                        enabled: staticFormValid;
+                        mouse-cursor: staticFormValid ? pointer : default;
+                        border-color: #2E3445;
+                        background: staticFormValid ? #2E3445 : #D5E2FA;
+                        color: staticFormValid ? #D5E2FA : #2e344585;
                         clicked => {
                             collect-static-event-data(
                                 event-name.text,
@@ -411,7 +441,8 @@ component ModalWindow inherits Rectangle {
                                 start-date.selected_date,
                                 end-date.selected_date,
                                 start-time.selected_time,
-                                end-time.selected_time)
+                                end-time.selected_time);
+                            request-close();
                         }
                     }
                 }
