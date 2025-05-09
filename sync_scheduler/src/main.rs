@@ -6,19 +6,24 @@ include!("./store/calendar.store.rs");
 include!("./store/events.store.rs");
 include!("./store/store.types.rs");
 include!("./db/events.db.rs");
+include!("./database/db_functions.rs");
 
 use chrono::{Datelike, NaiveDate, NaiveDateTime, NaiveTime};
-
+use dotenv::dotenv;
 use std::{
     cell::{RefCell, RefMut},
     rc::Rc,
 };
+use tokio::spawn;
 
 use slint::{ModelRc, SharedString, VecModel};
 
 slint::include_modules!();
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    dotenv().ok();
+
     let calendar_window = CalendarWindow::new().unwrap();
     calendar_window.window().set_maximized(true);
     // Create multi mutable reference to the calendar state
@@ -86,16 +91,26 @@ fn main() {
               end_date: Date,
               start_time: Time,
               end_time: Time| {
-            let event = create_new_static_event(
+            // let calendar_state = calendar_state_clone.borrow();
+            // let events_state = events_state_clone.borrow();
+
+            match create_new_static_event(
                 name,
                 description,
                 start_date,
                 end_date,
                 start_time,
                 end_time,
-            );
+            ) {
+                Ok(_) => {
+                    println!("Event created successfully");
+                }
+                Err(err) => {
+                    eprintln!("Error creating event: {}", err);
+                }
+            }
 
-            print!("Creating new static event\n");
+            // print!("Creating new static event {:?} \n", event);
 
             // let mut test = events_state_clone.borrow_mut();
             // test.add_event(event);

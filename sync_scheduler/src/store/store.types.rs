@@ -5,16 +5,6 @@ pub struct EventPreview {
 }
 
 #[derive(Debug, Clone)]
-pub struct Event {
-    pub id: String,
-    pub name: String,
-    pub description: String,
-    pub start: NaiveDateTime,
-    pub end: NaiveDateTime,
-    pub event_type: String,
-}
-
-#[derive(Debug, Clone)]
 pub struct DayEventsPreview {
     pub events: Vec<EventPreview>,
     pub count: u32,

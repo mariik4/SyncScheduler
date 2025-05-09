@@ -7,34 +7,42 @@ fn create_new_static_event(
     end_date: Date,
     start_time: Time,
     end_time: Time,
-) -> Option<Event> {
+) -> Result<(), String> {
     let start_d = NaiveDate::from_ymd_opt(
         start_date.year,
         start_date.month as u32,
         start_date.day as u32,
-    )?;
+    )
+    .ok_or_else(|| "Unsupported date format for start date".to_owned())?;
     let start_t = NaiveTime::from_hms_opt(
         start_time.hour as u32,
         start_time.minute as u32,
         start_time.second as u32,
-    )?;
+    )
+    .ok_or_else(|| "Unsupported time format for start time".to_owned())?;
 
-    let end_d = NaiveDate::from_ymd_opt(end_date.year, end_date.month as u32, end_date.day as u32)?;
+    let end_d = NaiveDate::from_ymd_opt(end_date.year, end_date.month as u32, end_date.day as u32)
+        .ok_or_else(|| "Unsupported date format for end date".to_owned())?;
     let end_t = NaiveTime::from_hms_opt(
         end_time.hour as u32,
         end_time.minute as u32,
         end_time.second as u32,
-    )?;
+    )
+    .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
 
-    let event = Event {
-        id: Uuid::new_v4().to_string(),
-        name: name.to_string(),
-        description: description.to_string(),
-        start: NaiveDateTime::new(start_d, start_t),
-        end: NaiveDateTime::new(end_d, end_t),
-        event_type: "static".to_string(),
-    };
+    let event = Event::new_static(
+        name.into(),
+        Some(description.into()),
+        NaiveDateTime::new(start_d, start_t),
+        NaiveDateTime::new(end_d, end_t),
+        Uuid::nil(),
+    );
 
-    create_static_event(&event);
-    Some(event)
+    spawn(async move {
+        if let Err(err) = add_event_to_db(&event).await {
+            eprintln!("DB error: {}", err);
+        }
+    });
+
+    Ok(())
 }

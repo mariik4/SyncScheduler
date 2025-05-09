@@ -1,11 +1,8 @@
-//use chrono::{NaiveDateTime, NaiveTime};
-use dotenv::dotenv;
 use sqlx::postgres::Postgres;
 use sqlx::types;
 use sqlx::Pool;
 use sqlx::{Connection, Error, PgConnection};
 use std::env;
-use uuid::Uuid;
 
 #[derive(sqlx::FromRow)]
 pub struct Event {
@@ -18,6 +15,53 @@ pub struct Event {
     pub priority: i64,
     pub postpone: i64,
     pub user_id: Uuid,
+}
+
+impl Event {
+    // constructor to create new static event
+    // with predefined fields: id, event_type, priority, postpone
+    pub fn new_static(
+        name: String,
+        description: Option<String>,
+        start_time: NaiveDateTime,
+        end_time: NaiveDateTime,
+        user_id: Uuid,
+    ) -> Self {
+        Event {
+            id: Uuid::new_v4(),
+            name,
+            description,
+            event_type: "static".into(),
+            start_time,
+            end_time,
+            priority: 5,
+            postpone: 0,
+            user_id,
+        }
+    }
+
+    // constructor to create new dynamic event
+    // with predefined fields: id, event_type, postpone
+    pub fn new_dynamic(
+        name: String,
+        description: Option<String>,
+        start_time: NaiveDateTime,
+        end_time: NaiveDateTime,
+        priority: i64,
+        user_id: Uuid,
+    ) -> Self {
+        Event {
+            id: Uuid::new_v4(),
+            name,
+            description,
+            event_type: "dynamic".into(),
+            start_time,
+            end_time,
+            priority,
+            postpone: 0,
+            user_id,
+        }
+    }
 }
 
 #[derive(sqlx::FromRow)]
@@ -117,8 +161,8 @@ pub async fn create_new_user_on_db(
     Ok(newUser)
 }
 
-pub async fn add_event_to_db(user_id: Uuid, event: Event) -> Result<(), Error> {
-    let url = std::env::var("DB_URL").unwrap();
+pub async fn add_event_to_db(event: &Event) -> Result<(), Error> {
+    let url = std::env::var("DB_URL").expect("DB_URL must be set to connect to the database");
 
     let pool = Pool::<Postgres>::connect(&url).await?;
 
@@ -127,9 +171,9 @@ pub async fn add_event_to_db(user_id: Uuid, event: Event) -> Result<(), Error> {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
     )
     .bind(event.id)
-    .bind(event.name)
-    .bind(event.description)
-    .bind(event.event_type)
+    .bind(&event.name)
+    .bind(&event.description)
+    .bind(&event.event_type)
     .bind(event.start_time)
     .bind(event.end_time)
     .bind(event.priority)
