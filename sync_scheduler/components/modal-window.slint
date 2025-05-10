@@ -238,8 +238,10 @@ component ModalWindow inherits Rectangle {
                         padding: 0;
                         width: 100%;
                         height: 40px;
-                        drop-shadow-color: red;
-                        drop-shadow-blur: nameValid ? 0px : 8px;
+                        drop-shadow-color: nameValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
                         event-name := LineEdit {
                             font-size: 14px;
                             width: parent.width;
@@ -252,6 +254,10 @@ component ModalWindow inherits Rectangle {
                         padding: 0;
                         width: 100%;
                         height: 40px;
+                        drop-shadow-color: #2E3445;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
                         event-description := LineEdit {
                             font-size: 14px;
                             width: parent.width;

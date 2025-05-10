@@ -30,20 +30,14 @@ fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<Calen
 }
 
 fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut<CalendarState>) {
-    // Снимем Option<Date> с состояния
     if let Some(date_struct) = calendar_state.selected_date.clone() {
-        // Распаковываем full_date из Option или падаем с сообщением
         let full_date = date_struct.full_date.expect("Full date does not exist");
-        // Обновляем заголовок выбранной даты
         calendar_window.set_selected_date(full_date.to_string().into());
 
-        // Сохраним слабую ссылку на окно и хэндлер
         let win_weak = calendar_window.as_weak();
         let tokio_handler = calendar_state.get_tokio_handler();
 
-        // Спавним локальную задачу
         let _ = slint::spawn_local(async move {
-            // Запускаем fetch в Runtime и ждём завершения
             let join_result = tokio_handler
                 .spawn(async move { refetch_events(&full_date).await })
                 .await;
