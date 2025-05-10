@@ -32,7 +32,12 @@ fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<Calen
 fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut<CalendarState>) {
     if let Some(date_struct) = calendar_state.selected_date.clone() {
         let full_date = date_struct.full_date.expect("Full date does not exist");
-        calendar_window.set_selected_date(full_date.to_string().into());
+        let date = slint_generatedCalendarWindow::Date {
+            year: full_date.year(),
+            month: full_date.month() as i32,
+            day: full_date.day() as i32,
+        };
+        calendar_window.set_selected_date(date);
 
         let win_weak = calendar_window.as_weak();
         let tokio_handler = calendar_state.get_tokio_handler();
@@ -65,7 +70,5 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
                 win.set_is_events_fetching_error(events_fetching_error);
             }
         });
-    } else {
-        calendar_window.set_selected_date("".into());
     }
 }

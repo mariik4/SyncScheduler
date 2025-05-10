@@ -181,7 +181,7 @@ component CalendarTemplate inherits Rectangle {
 }
 
 component SelectedDateSidebar inherits Rectangle {
-    in property <string> selected_date;
+    in property <Date> selected_date;
     in property <[SlintEvent]> events;
     in property <bool> is_events_fetching_error;
 
@@ -214,7 +214,7 @@ component SelectedDateSidebar inherits Rectangle {
                     spacing: 0;
                     alignment: center;
                     Text {
-                        text: selected_date;
+                        text: selected_date.day + "." + selected_date.month + "." + selected_date.year;
                         font-size: 24px;
                         font-weight: 600;
                         color: #D5E2FA;
@@ -324,6 +324,7 @@ component SelectedDateSidebar inherits Rectangle {
 }
 
 component ActionsMenu inherits Rectangle {
+    in property <Date> selected_date;
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     background: #fff;
     padding: 0;
@@ -332,6 +333,7 @@ component ActionsMenu inherits Rectangle {
         close-policy: close-on-click-outside;
 
         ModalWindow {
+            selected_date: root.selected_date;
             request-close => {
                 popup.close();
             }
@@ -379,7 +381,7 @@ export component CalendarWindow inherits Window {
     in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     in property <[[SlintDay]]> weeks;
     in property <string> date_title;
-    in property <string> selected_date;
+    in property <Date> selected_date;
     in property <[SlintEvent]> events;
     in property <bool> is_events_fetching_error;
     callback next-month;
@@ -406,6 +408,7 @@ export component CalendarWindow inherits Window {
             width: 75%;
 
             ActionsMenu {
+                selected_date: root.selected_date;
                 height: 60px;
                 padding: 0;
                 collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {

@@ -7,14 +7,11 @@ component StyledButton inherits CustomButton {
 }
 
 component Datepicker inherits Rectangle {
-    in-out property <string> button_text;
     in-out property <Date> selected_date;
-    in-out property <bool> is_valid;
+    out property <string> button_text: selected_date.day + "." + selected_date.month + "." + selected_date.year;
     padding: 0;
     width: 150px;
     height: 36px;
-    drop-shadow-blur: is_valid ? 0px : 8px;
-    drop-shadow-color: red;
 
     datepicker-button := StyledButton {
         text: button_text;
@@ -25,9 +22,9 @@ component Datepicker inherits Rectangle {
 
     date-picker := DatePickerPopup {
         close-policy: PopupClosePolicy.no-auto-close;
+        date: selected_date;
         accepted(date) => {
             selected_date = date;
-            is_valid = true;
             button_text = date.day + "." + date.month + "." + date.year;
             date-picker.close();
         }
@@ -210,12 +207,12 @@ component ModalWindow inherits Rectangle {
     drop-shadow-color: #2E3445;
     drop-shadow-blur: 130px;
 
+    in property <Date> selected_date;
+
     property <bool> nameValid: event_name.text != "";
-    property <bool> startDateValid: start_date.is_valid;
-    property <bool> endDateValid:   end_date.is_valid;
     property <bool> startTimeValid: start_time.is_valid;
     property <bool> endTimeValid:   end_time.is_valid;
-    property <bool> staticFormValid: nameValid && startDateValid && endDateValid && startTimeValid && endTimeValid;
+    property <bool> staticFormValid: nameValid && startTimeValid && endTimeValid;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback request-close();
@@ -314,7 +311,7 @@ component ModalWindow inherits Rectangle {
                                 }
 
                                 start-date := Datepicker {
-                                    button_text: "Start date";
+                                    selected_date: selected_date;
                                 }
                             }
 
@@ -334,9 +331,7 @@ component ModalWindow inherits Rectangle {
                                 }
 
                                 end-date := Datepicker {
-                                    button_text: start-date.is_valid ? start-date.button_text : "End date";
                                     selected_date: start-date.selected_date;
-                                    is_valid: startDateValid;
                                 }
                             }
                         }
