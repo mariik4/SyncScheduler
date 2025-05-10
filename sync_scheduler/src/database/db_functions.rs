@@ -4,7 +4,7 @@ use sqlx::Pool;
 use sqlx::{Connection, Error, PgConnection};
 use std::env;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub struct Event {
     pub id: Uuid,
     pub name: String,

@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-fn create_new_static_event(
+async fn create_new_static_event(
     name: SharedString,
     description: SharedString,
     start_date: Date,
@@ -38,11 +38,19 @@ fn create_new_static_event(
         Uuid::nil(),
     );
 
-    spawn(async move {
-        if let Err(err) = add_event_to_db(&event).await {
-            eprintln!("DB error: {}", err);
-        }
-    });
+    if let Err(err) = add_event_to_db(&event).await {
+        eprintln!("DB error: {}", err);
+    }
 
     Ok(())
+}
+
+async fn refetch_events(date: &NaiveDate) -> Result<Vec<Event>, String> {
+    match get_events_in_day(Uuid::nil(), *date).await {
+        Ok(events) => Ok(events),
+        Err(err) => Err(format!(
+            "Unable to load the data for the selected date: {}",
+            err
+        )),
+    }
 }

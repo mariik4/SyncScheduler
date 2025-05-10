@@ -3,10 +3,11 @@ pub struct CalendarState {
     pub year: i32,
     pub weeks: Vec<Vec<DayInfo>>,
     pub selected_date: Option<DayInfo>,
+    pub tokio_handler: Handle,
 }
 
 impl CalendarState {
-    pub fn new() -> Self {
+    pub fn new(tokio_handler: Handle) -> Self {
         let now = chrono::Local::now();
         let current_month = now.month();
         let current_year = now.year();
@@ -30,7 +31,12 @@ impl CalendarState {
             year: current_year,
             weeks,
             selected_date,
+            tokio_handler,
         }
+    }
+
+    pub fn get_tokio_handler(&self) -> Handle {
+        self.tokio_handler.clone()
     }
 
     pub fn next_month(&mut self) {
@@ -92,6 +98,9 @@ impl CalendarState {
 
 impl Default for CalendarState {
     fn default() -> Self {
-        Self::new()
+        let tokio_rt = tokio::runtime::Runtime::new().unwrap();
+        let tokio_handler = tokio_rt.handle().clone();
+
+        Self::new(tokio_handler)
     }
 }

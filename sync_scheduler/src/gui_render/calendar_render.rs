@@ -1,12 +1,8 @@
 // since always when wee need to update some data it need rerendering
 // we use calendar render as a main render function,
 // through which we can update all other components data
-fn calendar_render(
-    calendar_window: &CalendarWindow,
-    calendar_data: RefMut<CalendarState>,
-    events_data: RefMut<EventsState>,
-) {
-    let slint_weeks = format_slint_data(&calendar_data.weeks);
+fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<CalendarState>) {
+    let slint_weeks = format_slint_date(&calendar_data.weeks);
     let slint_weeks_model = ModelRc::new(VecModel::from(slint_weeks));
     calendar_window.set_weeks(slint_weeks_model);
 
@@ -34,19 +30,48 @@ fn calendar_render(
 }
 
 fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut<CalendarState>) {
-    let selected_date = &calendar_state.selected_date;
+    // Снимем Option<Date> с состояния
+    if let Some(date_struct) = calendar_state.selected_date.clone() {
+        // Распаковываем full_date из Option или падаем с сообщением
+        let full_date = date_struct.full_date.expect("Full date does not exist");
+        // Обновляем заголовок выбранной даты
+        calendar_window.set_selected_date(full_date.to_string().into());
 
-    match selected_date {
-        Some(date) => {
-            calendar_window.set_selected_date(
-                date.full_date
-                    .expect("Full date does not exists")
-                    .to_string()
-                    .into(),
-            );
-        }
-        None => {
-            calendar_window.set_selected_date("".into());
-        }
+        // Сохраним слабую ссылку на окно и хэндлер
+        let win_weak = calendar_window.as_weak();
+        let tokio_handler = calendar_state.get_tokio_handler();
+
+        // Спавним локальную задачу
+        let _ = slint::spawn_local(async move {
+            // Запускаем fetch в Runtime и ждём завершения
+            let join_result = tokio_handler
+                .spawn(async move { refetch_events(&full_date).await })
+                .await;
+            let mut events_fetching_error = false;
+
+            let events: Vec<_> = match join_result {
+                Ok(Ok(evts)) => evts,
+                Ok(Err(err_msg)) => {
+                    eprintln!("Unable to load events: {}", err_msg);
+                    events_fetching_error = true;
+                    Vec::new()
+                }
+                Err(join_err) => {
+                    eprintln!("Tokio task failed: {}", join_err);
+                    events_fetching_error = true;
+                    Vec::new()
+                }
+            };
+
+            if let Some(win) = win_weak.upgrade() {
+                println!("Events: {:?}", events);
+                let slint_events = slint_format_events(events, full_date);
+                println!("Slint events: {:?}", slint_events);
+                win.set_events(ModelRc::new(VecModel::from(slint_events)));
+                win.set_is_events_fetching_error(events_fetching_error);
+            }
+        });
+    } else {
+        calendar_window.set_selected_date("".into());
     }
 }
