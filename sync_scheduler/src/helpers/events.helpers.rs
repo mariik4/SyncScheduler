@@ -1,4 +1,6 @@
+
 use chrono::Duration;
+
 use uuid::Uuid;
 
 async fn create_new_static_event(

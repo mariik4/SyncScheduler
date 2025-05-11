@@ -60,7 +60,8 @@ pub fn get_month_data(year: i32, month: u32) -> Option<(Vec<Vec<DayInfo>>, Optio
         remained_days = 6 - date.weekday().num_days_from_monday();
     }
 
-    // Fill the rest of the week with the empty daysa=1, b=4, c=4, d=-1, e=-14, мені потрібні графіки до цих задач, але замість x-y+14=0 використай x=y+14, і заштрихуй, будь ласка, область перетину
+    // Fill the rest of the week with the empty days
+
     // if the month is finished not in Sunday
     for _ in 0..remained_days {
         weeks[weeks_counter].push(DayInfo {
