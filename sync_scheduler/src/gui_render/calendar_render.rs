@@ -30,6 +30,7 @@ fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<Calen
 }
 
 fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut<CalendarState>) {
+
     if let Some(date_struct) = calendar_state.selected_date.clone() {
         let full_date = date_struct.full_date.expect("Full date does not exist");
         let date = slint_generatedCalendarWindow::Date {
@@ -43,6 +44,7 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
         let tokio_handler = calendar_state.get_tokio_handler();
 
         let _ = slint::spawn_local(async move {
+
             let join_result = tokio_handler
                 .spawn(async move { refetch_events(&full_date).await })
                 .await;

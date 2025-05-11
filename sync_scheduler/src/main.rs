@@ -81,11 +81,13 @@ fn main() {
               start_time: Time,
               end_time: Time| {
             let window = weak_window.unwrap();
+
             let handle = {
                 let state = calendar_state_clone.borrow_mut();
                 state.get_tokio_handler()
             };
             let state_rc = calendar_state_clone.clone();
+
 
             let _ = slint::spawn_local(async move {
                 let join = handle.spawn(async move {
@@ -109,6 +111,7 @@ fn main() {
                 let state = state_rc.borrow_mut();
                 calendar_render(&window, state);
             });
+
         },
     );
 
