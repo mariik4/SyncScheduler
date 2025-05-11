@@ -166,6 +166,29 @@ pub async fn add_event_to_db(event: &Event) -> Result<(), Error> {
 
     let pool = Pool::<Postgres>::connect(&url).await?;
 
+    if event.start_time > event.end_time {
+        return Err(Error::InvalidArgument(
+            "Start time must be before end time".to_string(),
+        ));
+    }
+
+    let collisions = get_events_in_range(
+        event.user_id,
+        event.start_time.date(),
+        event.end_time.date(),
+    )
+    .await?;
+    for collision in collisions {
+        if (event.start_time >= collision.start_time && event.start_time <= collision.end_time)
+            || (event.end_time >= collision.start_time && event.end_time <= collision.end_time)
+            || (event.start_time <= collision.start_time && event.end_time >= collision.end_time)
+        {
+            return Err(Error::InvalidArgument(
+                "Event collides with existing event".to_string(),
+            ));
+        }
+    }
+
     sqlx::query(
         "INSERT INTO events (id, name, description, event_type, start_time, end_time, priority, postpone, user_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
