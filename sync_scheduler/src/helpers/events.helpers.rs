@@ -1,4 +1,3 @@
-
 use chrono::Duration;
 
 use uuid::Uuid;
@@ -48,19 +47,54 @@ async fn create_new_static_event(
     Ok(())
 }
 
+async fn create_new_dynamic_event(
+    name: SharedString,
+    description: SharedString,
+    duration: Time,
+    priority: i32,
+    weekdays: Vec<i32>,
+) -> Result<NaiveDate, String> {
+    println!("Creating dynamic event");
+    println!("Name: {}", name);
+    println!("Description: {}", description);
+    println!("Duration: {:?}", duration);
+    println!("Priority: {}", priority);
+    println!("Selected weekdays: {:?}", weekdays);
+
+    let today = chrono::offset::Local::now().date_naive();
+    // we set the interval for slots looking 2 weeks
+    let end_date = today + chrono::Duration::days(14);
+
+    let naive_duration = NaiveTime::from_hms_opt(duration.hour as u32, duration.minute as u32, 0)
+        .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
+
+    if let Err(err) = find_dynamic_events_variants_by_weekdays(
+        weekdays.iter().map(|&x| x as u32).collect(),
+        naive_duration,
+        today,
+        end_date,
+    )
+    .await
+    {
+        eprint!("Failed to find dynamic intervals {}", err);
+    };
+
+    Ok(end_date)
+}
+
 async fn find_dynamic_events_variants_by_weekdays(
     selected_days: Vec<u32>,
     duration: NaiveTime,
     start_day: NaiveDate,
     end_day: NaiveDate,
 ) -> Result<Vec<NaiveDateTime>, String> {
-    let days_range = (end_day.signed_duration_since(start_day).num_days() + 1) as i64;
+    let days_range = end_day.signed_duration_since(start_day).num_days() + 1;
 
     let mut days = Vec::new();
 
     for i in 0..days_range {
         let day = start_day + Duration::days(i);
-        let day_of_week = day.weekday().num_days_from_monday() as u32;
+        let day_of_week = day.weekday().num_days_from_monday();
 
         if selected_days.contains(&day_of_week) {
             days.push(day);
@@ -70,6 +104,8 @@ async fn find_dynamic_events_variants_by_weekdays(
     let variants = find_dynamic_events_variants_by_naive_dates(days, duration)
         .await
         .map_err(|err| err.to_string())?;
+
+    println!("Found variants: {:?}", variants);
 
     Ok(variants)
 }

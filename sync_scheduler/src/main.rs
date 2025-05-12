@@ -88,7 +88,6 @@ fn main() {
             };
             let state_rc = calendar_state_clone.clone();
 
-
             let _ = slint::spawn_local(async move {
                 let join = handle.spawn(async move {
                     create_new_static_event(
@@ -111,7 +110,6 @@ fn main() {
                 let state = state_rc.borrow_mut();
                 calendar_render(&window, state);
             });
-
         },
     );
 
@@ -137,38 +135,23 @@ fn main() {
 
             let weekdays: Vec<i32> = vecmodel
                 .iter()
-                .filter(|&idx| idx >= 0 && idx <= 6) // 6 — индекс воскресенья
+                .filter(|&idx| idx >= 0 && idx <= 6)
                 .collect();
 
-            println!("Creating dynamic event");
-            println!("Name: {}", name);
-            println!("Description: {}", description);
-            println!("Duration: {:?}", duration);
-            println!("Priority: {}", priority);
-            println!("Selected weekdays: {:?}", weekdays);
+            let _ = slint::spawn_local(async move {
+                let join = handle.spawn(async move {
+                    create_new_dynamic_event(name, description, duration, priority, weekdays).await
+                });
 
-            // let _ = slint::spawn_local(async move {
-            //     let join = handle.spawn(async move {
-            //         create_new_dynamic_event(
-            //             name,
-            //             description,
-            //             start_date,
-            //             end_date,
-            //             start_time,
-            //             end_time,
-            //         )
-            //         .await
-            //     });
+                match join.await {
+                    Ok(Ok(_)) => println!("Event created successfully"),
+                    Ok(Err(e)) => eprintln!("Error creating event: {}", e),
+                    Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
+                }
 
-            //     match join.await {
-            //         Ok(Ok(_)) => println!("Event created successfully"),
-            //         Ok(Err(e)) => eprintln!("Error creating event: {}", e),
-            //         Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
-            //     }
-
-            //     let state = state_rc.borrow_mut();
-            //     calendar_render(&window, state);
-            // });
+                let state = state_rc.borrow_mut();
+                calendar_render(&window, state);
+            });
         },
     );
 
