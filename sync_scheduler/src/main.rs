@@ -15,7 +15,7 @@ use std::{
 };
 use tokio::runtime::Handle;
 
-use slint::{ModelRc, SharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, VecModel};
 
 slint::include_modules!();
 
@@ -109,6 +109,63 @@ fn main() {
                 let state = state_rc.borrow_mut();
                 calendar_render(&window, state);
             });
+        },
+    );
+
+    let calendar_state_clone = Rc::clone(&calendar_state);
+    let weak_window = calendar_window.as_weak();
+    calendar_window.on_create_dynamic_event(
+        move |name: SharedString,
+              description: SharedString,
+              duration: Time,
+              priority: i32,
+              selected_weekdays: ModelRc<i32>| {
+            let window = weak_window.unwrap();
+            let handle = {
+                let state = calendar_state_clone.borrow_mut();
+                state.get_tokio_handler()
+            };
+            let state_rc = calendar_state_clone.clone();
+
+            let vecmodel: &slint::VecModel<i32> = selected_weekdays
+                .as_any()
+                .downcast_ref::<slint::VecModel<i32>>()
+                .expect("ModelRc is not a VecModel");
+
+            let weekdays: Vec<i32> = vecmodel
+                .iter()
+                .filter(|&idx| idx >= 0 && idx <= 6) // 6 — индекс воскресенья
+                .collect();
+
+            println!("Creating dynamic event");
+            println!("Name: {}", name);
+            println!("Description: {}", description);
+            println!("Duration: {:?}", duration);
+            println!("Priority: {}", priority);
+            println!("Selected weekdays: {:?}", weekdays);
+
+            // let _ = slint::spawn_local(async move {
+            //     let join = handle.spawn(async move {
+            //         create_new_dynamic_event(
+            //             name,
+            //             description,
+            //             start_date,
+            //             end_date,
+            //             start_time,
+            //             end_time,
+            //         )
+            //         .await
+            //     });
+
+            //     match join.await {
+            //         Ok(Ok(_)) => println!("Event created successfully"),
+            //         Ok(Err(e)) => eprintln!("Error creating event: {}", e),
+            //         Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
+            //     }
+
+            //     let state = state_rc.borrow_mut();
+            //     calendar_render(&window, state);
+            // });
         },
     );
 

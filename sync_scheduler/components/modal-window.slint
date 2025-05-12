@@ -1,136 +1,7 @@
 import { TabWidget, Time, Date, Button, VerticalBox, HorizontalBox, CheckBox, LineEdit } from "std-widgets.slint";
 import { CustomButton } from "custom-button.slint";
 import { StaticEventModal } from "events/static-events.modal.slint";
-
-component SelectedWeekdays inherits GridLayout {
-    padding: 0;
-    spacing-horizontal: 10px;
-    spacing-vertical: 5px;
-    height: 70px;
-
-    Row {
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Mo";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Tu";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "We";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Th";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Fr";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Sa";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            Text {
-                text: "Su";
-                font-size: 14px;
-                color: #2E3445;
-            }
-        }
-    }
-
-    Row {
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-
-        Rectangle {
-            padding: 0;
-            CheckBox {
-                padding: 0;
-                checked: true;
-            }
-        }
-    }
-}
+import { DynamicEventsModal } from "events/dynamic-events.modal.slint";
 
 component ModalWindow inherits Rectangle {
     height: 100%;
@@ -147,6 +18,7 @@ component ModalWindow inherits Rectangle {
     in property <Date> selected_date;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     callback request-close();
 
     TabWidget {
@@ -167,40 +39,12 @@ component ModalWindow inherits Rectangle {
 
         Tab {
             title: "Dynamic";
-            VerticalBox {
-                width: 100%;
-                height: 100%;
-                padding: 16px;
-                spacing: 24px;
-
-                Text {
-                    text: "Dynamic content goes here";
-                    font-size: 18px;
-                    font-weight: 500;
-                    color: #2E3445;
+            DynamicEventsModal {
+                create_dynamic_event(name, description, duration, priority, weekdays) => {
+                    root.create_dynamic_event(name, description, duration, priority, weekdays);
                 }
-
-                HorizontalBox {
-                    padding: 0;
-                    spacing: 20px;
-                    alignment: start;
-                    Rectangle {
-                        padding: 0;
-                        Text {
-                            padding: 0;
-                            text: "Select preferred weekdays:";
-                            font-size: 18px;
-                            font-weight: 500;
-                            color: #2E3445;
-                        }
-                    }
-
-                    Rectangle {
-                        padding: 0;
-                        SelectedWeekdays {
-                            padding: 0;
-                        }
-                    }
+                request-close => {
+                    root.request-close();
                 }
             }
         }

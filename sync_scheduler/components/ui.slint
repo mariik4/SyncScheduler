@@ -177,6 +177,7 @@ component CalendarTemplate inherits Rectangle {
 component ActionsMenu inherits Rectangle {
     in property <Date> selected_date;
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     padding: 0;
     height: 40px;
     width: 100%;
@@ -188,6 +189,9 @@ component ActionsMenu inherits Rectangle {
             selected_date: root.selected_date;
             request-close => {
                 popup.close();
+            }
+            create_dynamic_event(name, description, duration, priority, weekdays) => {
+                root.create_dynamic_event(name, description, duration, priority, weekdays);
             }
             collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                 root.collect-static-event-data(name, description, start_date, end_date, start_time, end_time);
@@ -250,6 +254,7 @@ export component CalendarWindow inherits Window {
     callback previous-month;
     callback select_date(string);
     callback collect_static(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
 
     HorizontalBox {
         width: 100%;
@@ -280,6 +285,9 @@ export component CalendarWindow inherits Window {
                     selected_date: root.selected_date;
                     collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                         root.collect_static(name, description, start_date, end_date, start_time, end_time);
+                    }
+                    create_dynamic_event(name, description, duration, priority, weekdays) => {
+                        root.create_dynamic_event(name, description, duration, priority, weekdays);
                     }
                 }
 
