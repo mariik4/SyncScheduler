@@ -175,7 +175,9 @@ component CalendarTemplate inherits Rectangle {
 }
 
 component ActionsMenu inherits Rectangle {
+
     in property <Date> selected_date;
+
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     padding: 0;
@@ -186,6 +188,7 @@ component ActionsMenu inherits Rectangle {
         close-policy: close-on-click-outside;
 
         ModalWindow {
+
             selected_date: root.selected_date;
             request-close => {
                 popup.close();
@@ -247,7 +250,9 @@ export component CalendarWindow inherits Window {
     in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     in property <[[SlintDay]]> weeks;
     in property <string> date_title;
+
     in property <Date> selected_date;
+
     in property <[SlintEvent]> events;
     in property <bool> is_events_fetching_error;
     callback next-month;

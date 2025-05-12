@@ -61,6 +61,7 @@ pub fn get_month_data(year: i32, month: u32) -> Option<(Vec<Vec<DayInfo>>, Optio
     }
 
     // Fill the rest of the week with the empty days
+
     // if the month is finished not in Sunday
     for _ in 0..remained_days {
         weeks[weeks_counter].push(DayInfo {
