@@ -24,6 +24,7 @@ component ModalWindow inherits Rectangle {
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback create-dynamic-event(slot_id: string);
     callback request-close();
 
     TabWidget {
@@ -53,6 +54,9 @@ component ModalWindow inherits Rectangle {
                 is_loading: root.is_loading;
                 start_slots_searching(name, description, duration, priority, weekdays) => {
                     root.start_slots_searching(name, description, duration, priority, weekdays);
+                }
+                create-dynamic-event(slot-id) => {
+                    create-dynamic-event(slot-id)
                 }
                 request-close => {
                     root.request-close();

@@ -48,19 +48,35 @@ async fn create_new_static_event(
 }
 
 async fn create_new_dynamic_event(
-    name: SharedString,
-    description: SharedString,
+    slot_pre_data: DynamicEventPreData,
+    slot: Option<Slot>,
+) -> Result<(), String> {
+    let name = slot_pre_data.name.to_string();
+    let description = slot_pre_data.description.to_string();
+    let priority = slot_pre_data.priority;
+
+    let slot_data = slot.ok_or_else(|| "Slot not found!")?;
+
+    let event = Event::new_dynamic(
+        name.into(),
+        description.into(),
+        NaiveDateTime::new(slot_data.date, slot_data.start_time),
+        NaiveDateTime::new(slot_data.date, slot_data.end_time),
+        priority,
+        Uuid::nil(),
+    );
+
+    if let Err(err) = add_event_to_db(&event).await {
+        eprintln!("DB error: {}", err);
+    }
+
+    Ok(())
+}
+
+async fn search_for_slots(
     duration: Time,
-    priority: i32,
     weekdays: Vec<i32>,
 ) -> Result<(Vec<Slot>, NaiveDate), String> {
-    println!("Creating dynamic event");
-    println!("Name: {}", name);
-    println!("Description: {}", description);
-    println!("Duration: {:?}", duration);
-    println!("Priority: {}", priority);
-    println!("Selected weekdays: {:?}", weekdays);
-
     let today = chrono::offset::Local::now().date_naive();
     // we set the interval for slots looking 2 weeks
     let end_date = today + chrono::Duration::days(14);

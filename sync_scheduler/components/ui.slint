@@ -183,6 +183,7 @@ component ActionsMenu inherits Rectangle {
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback create-dynamic-event(slot_id: string);
     padding: 0;
     height: 35px;
     width: 100%;
@@ -203,6 +204,9 @@ component ActionsMenu inherits Rectangle {
             }
             collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                 root.collect-static-event-data(name, description, start_date, end_date, start_time, end_time);
+            }
+            create-dynamic-event(slot-id) => {
+                root.create-dynamic-event(slot-id)
             }
             padding: 0;
         }
@@ -270,6 +274,7 @@ export component CalendarWindow inherits Window {
     callback select_date(string);
     callback collect_static(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback create-dynamic-event(slot_id: string);
 
     HorizontalBox {
         width: 100%;
@@ -307,6 +312,9 @@ export component CalendarWindow inherits Window {
                     }
                     start_slots_searching(name, description, duration, priority, weekdays) => {
                         root.start_slots_searching(name, description, duration, priority, weekdays);
+                    }
+                    create-dynamic-event(slot-id) => {
+                        root.create-dynamic-event(slot-id)
                     }
                 }
 

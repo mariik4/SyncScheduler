@@ -102,7 +102,7 @@ pub fn slint_format_slots(
                 second: slot.end_time.second() as i32,
             },
             date: Date {
-                year: slot.date.year() as i32,
+                year: slot.date.year(),
                 month: slot.date.month() as i32,
                 day: slot.date.day() as i32,
             },

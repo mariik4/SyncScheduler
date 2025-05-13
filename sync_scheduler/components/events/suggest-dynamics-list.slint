@@ -10,6 +10,7 @@ export struct SlintSlot {
 }
 
 component Slot inherits Rectangle {
+    in property <string> id;
     in property <Time> start_time;
     in property <Time> end_time;
     in property <Date> date;
@@ -20,7 +21,7 @@ component Slot inherits Rectangle {
     border-radius: 8px;
     padding: 0px;
 
-    callback create-dynamic-event();
+    callback create-dynamic-event(slot_id: string);
 
     VerticalBox {
         padding: 0;
@@ -70,6 +71,10 @@ component Slot inherits Rectangle {
                     background: #f8fafc;
                     font-size: 10px;
                     color: #2E3445;
+
+                    clicked => {
+                        create-dynamic-event(root.id);
+                    }
                 }
             }
         }
@@ -80,6 +85,8 @@ component SuggestDynamicList inherits Rectangle {
     in property <bool> is_loading: false;
     in property <string> error: "";
     in property <[SlintSlot]> slots;
+
+    callback create-dynamic-event(slot_id: string);
 
     width: 400px;
     height: 250px;
@@ -138,10 +145,14 @@ component SuggestDynamicList inherits Rectangle {
                     }
 
                     for slot in slots: Slot {
+                        id: slot.id;
                         start_time: slot.start_time;
                         end_time: slot.end_time;
                         date: slot.date;
                         weekday: slot.weekday;
+                        create-dynamic-event(slot-id) => {
+                            root.create-dynamic-event(slot-id)
+                        }
                     }
                 }
             }

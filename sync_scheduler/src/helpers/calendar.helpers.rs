@@ -49,7 +49,7 @@ pub fn get_month_data(year: i32, month: u32) -> Option<(Vec<Vec<DayInfo>>, Optio
             is_selected: false,
             is_today: date == today,
             events_preview: Some(DayEventsPreview {
-                events: fetch_events_preview_by_date(date),
+                events: Vec::new(),
                 count: 0,
             }),
         };
