@@ -77,6 +77,8 @@ component Slot inherits Rectangle {
 }
 
 component SuggestDynamicList inherits Rectangle {
+    in property <bool> is_loading: false;
+    in property <string> error: "";
     in property <[SlintSlot]> slots;
 
     width: 400px;
@@ -119,8 +121,16 @@ component SuggestDynamicList inherits Rectangle {
                     padding: 5px;
                     spacing: 5px;
 
-                    if (slots.length == 0): Text {
-                        text: "Oooops! Seems like there nothing was found...";
+                    if (error != ""): Text {
+                        text: error;
+                        font-size: 14px;
+                        color: red;
+                        font-weight: 600;
+                        wrap: word-wrap;
+                    }
+
+                    if (is_loading): Text {
+                        text: "Activly searching for the slots. Please wait ....";
                         font-size: 14px;
                         color: #2E3445;
                         font-weight: 600;

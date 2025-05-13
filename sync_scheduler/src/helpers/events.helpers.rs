@@ -2,14 +2,6 @@ use chrono::Duration;
 
 use uuid::Uuid;
 
-struct Slot {
-    id: String,
-    start_time: NaiveTime,
-    end_time: NaiveTime,
-    date: NaiveDate,
-    weekday: String,
-}
-
 async fn create_new_static_event(
     name: SharedString,
     description: SharedString,
@@ -174,13 +166,13 @@ async fn find_dynamic_events_variants_by_naive_dates(
             if is_free {
                 let variant = NaiveDateTime::new(start_d, start_time);
                 variants.push(variant);
-                start_time = start_time + Duration::minutes(60);
-                end_time = end_time + Duration::minutes(60);
+                start_time += Duration::minutes(60);
+                end_time += Duration::minutes(60);
                 continue;
             }
 
-            start_time = start_time + Duration::minutes(15);
-            end_time = end_time + Duration::minutes(15);
+            start_time += Duration::minutes(15);
+            end_time += Duration::minutes(15);
         }
     }
     Ok(variants)

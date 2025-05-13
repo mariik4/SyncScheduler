@@ -124,6 +124,8 @@ component DynamicEventsModal inherits VerticalBox {
     property <bool> staticFormValid: nameValid && duration-time.is_valid;
     property <int> selected_priority: 1;
 
+    in property <bool> is_loading: false;
+    in property <string> error: "";
     in property <[SlintSlot]> slots;
 
     function toggle_priorities(priority: int) {
@@ -282,6 +284,8 @@ component DynamicEventsModal inherits VerticalBox {
             spacing: 0px;
             dynamic-slots := SuggestDynamicList {
                 slots: root.slots;
+                error: root.error;
+                is_loading: root.is_loading;
             }
 
             HorizontalBox {
@@ -315,20 +319,6 @@ component DynamicEventsModal inherits VerticalBox {
                     }
                 }
             }
-
-            // Rectangle {
-            //     height: 100%;
-            //     width: 220px;
-            //     padding: 0;
-            //     background: red;
-            //     VerticalBox {
-            //         height: 100%;
-            //         width: 220px;
-            //         padding: 0;
-            //         alignment: end;
-                    
-            //     }
-            // }
         }
     }
 }

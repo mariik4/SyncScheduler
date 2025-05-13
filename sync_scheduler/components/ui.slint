@@ -176,6 +176,8 @@ component CalendarTemplate inherits Rectangle {
 }
 
 component ActionsMenu inherits Rectangle {
+    in property <bool> is_loading: false;
+    in property <string> error: "";
     in property <[SlintSlot]> slots;
     in property <Date> selected_date;
 
@@ -190,6 +192,8 @@ component ActionsMenu inherits Rectangle {
 
         ModalWindow {
             slots: root.slots;
+            error: root.error;
+            is_loading: root.is_loading;
             selected_date: root.selected_date;
             request-close => {
                 popup.close();
@@ -254,6 +258,9 @@ export component CalendarWindow inherits Window {
     in property <string> date_title;
 
     in property <Date> selected_date;
+
+    in property <bool> is_slots_loading: false;
+    in property <string> slots_error: "";
     in property <[SlintSlot]> slots;
 
     in property <[SlintEvent]> events;
@@ -292,6 +299,8 @@ export component CalendarWindow inherits Window {
 
                 ActionsMenu {
                     slots: root.slots;
+                    error: root.slots_error;
+                    is_loading: root.is_slots_loading;
                     selected_date: root.selected_date;
                     collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                         root.collect_static(name, description, start_date, end_date, start_time, end_time);

@@ -16,6 +16,8 @@ component ModalWindow inherits Rectangle {
     drop-shadow-color: #2E3445;
     drop-shadow-blur: 130px;
 
+    in property <bool> is_loading: false;
+    in property <string> error: "";
     in property <[SlintSlot]> slots;
 
     in property <Date> selected_date;
@@ -47,6 +49,8 @@ component ModalWindow inherits Rectangle {
             padding: 0;
             DynamicEventsModal {
                 slots: root.slots;
+                error: root.error;
+                is_loading: root.is_loading;
                 start_slots_searching(name, description, duration, priority, weekdays) => {
                     root.start_slots_searching(name, description, duration, priority, weekdays);
                 }

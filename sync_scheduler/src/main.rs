@@ -6,6 +6,8 @@ include!("./store/calendar.store.rs");
 include!("./store/store.types.rs");
 include!("./db/events.db.rs");
 include!("./database/db_functions.rs");
+include!("./store/slots.store.rs");
+include!("./gui_render/slots.render.rs");
 
 use chrono::{Datelike, NaiveDate, NaiveDateTime, NaiveTime};
 use dotenv::dotenv;
@@ -30,6 +32,7 @@ fn main() {
     // Create multi mutable reference to the calendar state
     // to be able to pass the state to the callbacks
     let calendar_state = Rc::new(RefCell::new(CalendarState::new(tokio_handler)));
+    let slots_state = Rc::new(RefCell::new(SlotsState::new()));
     // Set calendar initial state
     {
         // due to the mutable state in the code below I create mutable Ref,
@@ -114,6 +117,7 @@ fn main() {
     );
 
     let calendar_state_clone = Rc::clone(&calendar_state);
+    let slots_state_clone = Rc::clone(&slots_state);
     let weak_window = calendar_window.as_weak();
     calendar_window.on_start_slots_searching(
         move |name: SharedString,
@@ -126,7 +130,12 @@ fn main() {
                 let state = calendar_state_clone.borrow_mut();
                 state.get_tokio_handler()
             };
-            let state_rc = calendar_state_clone.clone();
+            let slots_rc = slots_state_clone.clone();
+            {
+                let mut slots_state = slots_rc.borrow_mut();
+                slots_state.set_pending();
+                slots_render(&window, slots_state);
+            }
 
             let vecmodel: &slint::VecModel<i32> = selected_weekdays
                 .as_any()
@@ -139,27 +148,28 @@ fn main() {
                 .collect();
 
             let _ = slint::spawn_local(async move {
-                let slots = match handle
+                let join_result = handle
                     .spawn(async move {
                         create_new_dynamic_event(name, description, duration, priority, weekdays)
                             .await
                     })
-                    .await
-                {
-                    Ok(Ok((slots, _))) => slots,
+                    .await;
+
+                let mut slots_state = slots_rc.borrow_mut();
+                match join_result {
+                    Ok(Ok((slots, _))) => {
+                        slots_state.set_success(slots);
+                    }
                     Ok(Err(e)) => {
                         eprintln!("Error creating event: {}", e);
-                        return;
+                        slots_state.set_failed(e.to_string());
                     }
                     Err(join_e) => {
                         eprintln!("Tokio task failed: {}", join_e);
-                        return;
                     }
                 };
 
-                let formatted_slots = slint_format_slots(slots);
-                println!("hfguowehpfgpewugfh: {:?}", formatted_slots);
-                window.set_slots(ModelRc::new(VecModel::from(formatted_slots)));
+                slots_render(&window, slots_state);
             });
         },
     );
