@@ -1,0 +1,183 @@
+import { TabWidget, DatePickerPopup, TimePickerPopup, Time, Date, Button, VerticalBox, HorizontalBox, CheckBox, LineEdit } from "std-widgets.slint";
+import { CustomButton } from "custom-button.slint";
+
+component LoginWindow inherits Rectangle {
+    height: 100%;
+    width: 100%;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    border-width: 1px;
+    border-radius: 12px;
+    padding: 20px;
+
+    property <bool> loginValid: login_name.text != "";
+    property <bool> passValid: passw.text != "";
+
+    property <bool> registrationValid: registration_name.text != "" && registration_name.text != " ";
+    property <bool> new_passValid: newpassw.text != "";
+
+    property <bool> staticFormValid: loginValid && passValid;
+    property <bool> registrationFormValid: registrationValid && new_passValid;
+
+    callback collect-login(login: string, password: string);
+    callback collect-registration(login: string, password: string);
+    callback request-close();
+
+    TabWidget {
+        width: 100%;
+        height: 100%;
+
+        Tab {
+            title: "Login";
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 20px;
+                spacing: 50px;
+                y: 50px;
+
+                VerticalBox {
+                    padding: 0;
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color: loginValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        login-name := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Login";
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color:passValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        passw := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Password";
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: end;
+                    padding: 0;
+                    padding-top: 20px;
+                    width: 100%;
+                    CustomButton {
+                        text: "Log In";
+                        width: 100px;
+                        height: 36px;
+                        enabled: staticFormValid;
+                        background: staticFormValid ? #2E3445 : #D5E2FA;
+                        color: staticFormValid ? #D5E2FA : #2e344585;
+                        mouse-cursor: pointer;
+                        clicked => {
+
+                            collect-login(
+                                login-name.text,
+                                passw.text
+                            );
+
+                            request-close();
+                        }
+                    }
+                }
+            }   
+        }
+
+        Tab {
+            title: "Registration";
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 20px;
+                spacing: 50px;
+                y: 50px;
+
+                VerticalBox {
+                    padding: 0;
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color: registrationValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        registration-name := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "New Login";
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color:new_passValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        newpassw := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Password";
+                        }
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: end;
+                    padding: 0;
+                    padding-top: 20px;
+                    width: 100%;
+                    CustomButton {
+                        text: "Create user";
+                        width: 100px;
+                        height: 36px;
+                        enabled: registrationFormValid;
+                        background: registrationFormValid ? #2E3445 : #D5E2FA;
+                        color: registrationFormValid ? #D5E2FA : #2e344585;
+                        mouse-cursor: pointer;
+                        clicked => {
+
+                            collect-registration(
+                                registration_name.text,
+                                newpassw.text
+                            );
+
+                            request-close();
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+export { LoginWindow }
