@@ -2,6 +2,14 @@ use chrono::Duration;
 
 use uuid::Uuid;
 
+struct Slot {
+    id: String,
+    start_time: NaiveTime,
+    end_time: NaiveTime,
+    date: NaiveDate,
+    weekday: String,
+}
+
 async fn create_new_static_event(
     name: SharedString,
     description: SharedString,
@@ -53,7 +61,7 @@ async fn create_new_dynamic_event(
     duration: Time,
     priority: i32,
     weekdays: Vec<i32>,
-) -> Result<NaiveDate, String> {
+) -> Result<(Vec<Slot>, NaiveDate), String> {
     println!("Creating dynamic event");
     println!("Name: {}", name);
     println!("Description: {}", description);
@@ -68,18 +76,29 @@ async fn create_new_dynamic_event(
     let naive_duration = NaiveTime::from_hms_opt(duration.hour as u32, duration.minute as u32, 0)
         .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
 
-    if let Err(err) = find_dynamic_events_variants_by_weekdays(
+    let variants = find_dynamic_events_variants_by_weekdays(
         weekdays.iter().map(|&x| x as u32).collect(),
         naive_duration,
         today,
         end_date,
     )
-    .await
-    {
-        eprint!("Failed to find dynamic intervals {}", err);
-    };
+    .await?;
 
-    Ok(end_date)
+    let slots = variants
+        .iter()
+        .map(|&slot| Slot {
+            id: Uuid::new_v4().to_string(),
+            start_time: slot.time(),
+            end_time: slot.time()
+                + Duration::hours(naive_duration.hour() as i64)
+                + Duration::minutes(naive_duration.minute() as i64)
+                + Duration::seconds(naive_duration.second() as i64),
+            date: slot.date(),
+            weekday: slot.weekday().to_string(),
+        })
+        .collect();
+
+    Ok((slots, end_date))
 }
 
 async fn find_dynamic_events_variants_by_weekdays(

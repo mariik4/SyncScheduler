@@ -9,6 +9,7 @@ export component CustomButton inherits TouchArea {
     in property <brush> pressed_background <=> i-container.background;
     in property <brush> pressed_color <=> i-text.color;
     in property <brush> border-color;
+    in property <length> font-size <=> i-text.font-size;
 
     i-container := Rectangle {
         border-radius: 4px;

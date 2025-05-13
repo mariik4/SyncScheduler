@@ -2,6 +2,7 @@ import { TabWidget, Time, Date, Button, VerticalBox, HorizontalBox, CheckBox, Li
 import { CustomButton } from "custom-button.slint";
 import { StaticEventModal } from "events/static-events.modal.slint";
 import { DynamicEventsModal } from "events/dynamic-events.modal.slint";
+import { SlintSlot } from "events/suggest-dynamics-list.slint";
 
 component ModalWindow inherits Rectangle {
     height: 100%;
@@ -10,22 +11,26 @@ component ModalWindow inherits Rectangle {
     border-color: #e2e8f0;
     border-width: 1px;
     border-radius: 12px;
-    padding: 20px;
+    padding: 0px;
 
     drop-shadow-color: #2E3445;
     drop-shadow-blur: 130px;
 
+    in property <[SlintSlot]> slots;
+
     in property <Date> selected_date;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     callback request-close();
 
     TabWidget {
         width: 100%;
         height: 100%;
+        padding: 0;
         Tab {
             title: "Static";
+            padding: 0;
             StaticEventModal {
                 selected_date: selected_date;
                 collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
@@ -39,9 +44,11 @@ component ModalWindow inherits Rectangle {
 
         Tab {
             title: "Dynamic";
+            padding: 0;
             DynamicEventsModal {
-                create_dynamic_event(name, description, duration, priority, weekdays) => {
-                    root.create_dynamic_event(name, description, duration, priority, weekdays);
+                slots: root.slots;
+                start_slots_searching(name, description, duration, priority, weekdays) => {
+                    root.start_slots_searching(name, description, duration, priority, weekdays);
                 }
                 request-close => {
                     root.request-close();

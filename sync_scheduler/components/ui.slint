@@ -1,7 +1,8 @@
-import { VerticalBox, HorizontalBox, GridBox, Button, Date, Time } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, GridBox, Button, Date, Time, ScrollView } from "std-widgets.slint";
 import { ModalWindow } from "modal-window.slint";
 import { CustomButton } from "custom-button.slint";
 import { SelectedDateSidebar, SlintEvent } from "selected-date-sidebar.slint";
+import { SlintSlot, SuggestDynamicList } from "events/suggest-dynamics-list.slint";
 
 struct SlintEventPreview {
     id: string,
@@ -175,26 +176,26 @@ component CalendarTemplate inherits Rectangle {
 }
 
 component ActionsMenu inherits Rectangle {
-
+    in property <[SlintSlot]> slots;
     in property <Date> selected_date;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     padding: 0;
-    height: 40px;
+    height: 35px;
     width: 100%;
 
     popup := PopupWindow {
         close-policy: close-on-click-outside;
 
         ModalWindow {
-
+            slots: root.slots;
             selected_date: root.selected_date;
             request-close => {
                 popup.close();
             }
-            create_dynamic_event(name, description, duration, priority, weekdays) => {
-                root.create_dynamic_event(name, description, duration, priority, weekdays);
+            start_slots_searching(name, description, duration, priority, weekdays) => {
+                root.start_slots_searching(name, description, duration, priority, weekdays);
             }
             collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                 root.collect-static-event-data(name, description, start_date, end_date, start_time, end_time);
@@ -203,9 +204,10 @@ component ActionsMenu inherits Rectangle {
         }
 
         x: 200px;
-        y: 180px;
-        height: 600px;
+        y: 130px;
+        height: 700px;
         width: 700px;
+        padding: 0px;
     }
 
     HorizontalBox {
@@ -252,6 +254,7 @@ export component CalendarWindow inherits Window {
     in property <string> date_title;
 
     in property <Date> selected_date;
+    in property <[SlintSlot]> slots;
 
     in property <[SlintEvent]> events;
     in property <bool> is_events_fetching_error;
@@ -259,7 +262,7 @@ export component CalendarWindow inherits Window {
     callback previous-month;
     callback select_date(string);
     callback collect_static(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
 
     HorizontalBox {
         width: 100%;
@@ -278,6 +281,7 @@ export component CalendarWindow inherits Window {
             height: 100%;
             padding: 0;
             background: #eaeded;
+
             VerticalBox {
                 spacing: 5px;
                 padding: 0;
@@ -287,12 +291,13 @@ export component CalendarWindow inherits Window {
                 width: 100%;
 
                 ActionsMenu {
+                    slots: root.slots;
                     selected_date: root.selected_date;
                     collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                         root.collect_static(name, description, start_date, end_date, start_time, end_time);
                     }
-                    create_dynamic_event(name, description, duration, priority, weekdays) => {
-                        root.create_dynamic_event(name, description, duration, priority, weekdays);
+                    start_slots_searching(name, description, duration, priority, weekdays) => {
+                        root.start_slots_searching(name, description, duration, priority, weekdays);
                     }
                 }
 

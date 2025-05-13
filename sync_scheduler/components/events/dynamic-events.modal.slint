@@ -1,6 +1,7 @@
 import { VerticalBox, LineEdit, HorizontalBox, CheckBox, Time } from "std-widgets.slint";
 import {CustomButton} from "../custom-button.slint";
 import { Timepicker } from "date-time-picker.slint";
+import { SuggestDynamicList, SlintSlot } from "suggest-dynamics-list.slint";
 
 component WeekdayCheckbox inherits VerticalBox {
     in property <string> name;
@@ -123,6 +124,8 @@ component DynamicEventsModal inherits VerticalBox {
     property <bool> staticFormValid: nameValid && duration-time.is_valid;
     property <int> selected_priority: 1;
 
+    in property <[SlintSlot]> slots;
+
     function toggle_priorities(priority: int) {
         priority-1.is_selected = priority == 1;
         priority-2.is_selected = priority == 2;
@@ -133,188 +136,199 @@ component DynamicEventsModal inherits VerticalBox {
 
     callback request-close();
 
-    callback create_dynamic_event(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     width: 100%;
     height: 100%;
     padding: 20px;
     spacing: 0;
     y: 50px;
 
-    Rectangle {
-        padding: 0;
+    VerticalBox {
         width: 100%;
-        height: 80%;
+        spacing: 30px;
+        padding: 0;
         VerticalBox {
-            spacing: 40px;
             padding: 0;
-            VerticalBox {
+            Rectangle {
                 padding: 0;
-                Rectangle {
-                    padding: 0;
-                    width: 100%;
-                    height: 40px;
-                    drop-shadow-color: nameValid ? #2E3445 : red;
-                    drop-shadow-blur: 8px;
-                    border-color: #2E3445;
-                    border-width: 1px;
-                    event-name := LineEdit {
-                        font-size: 14px;
-                        width: parent.width;
-                        height: parent.height;
-                        placeholder-text: "Event name (required)";
-                    }
+                width: 100%;
+                height: 40px;
+                drop-shadow-color: nameValid ? #2E3445 : red;
+                drop-shadow-blur: 8px;
+                border-color: #2E3445;
+                border-width: 1px;
+                event-name := LineEdit {
+                    font-size: 14px;
+                    width: parent.width;
+                    height: parent.height;
+                    placeholder-text: "Event name (required)";
+                }
+            }
+
+            Rectangle {
+                padding: 0;
+                width: 100%;
+                height: 40px;
+                drop-shadow-color: #2E3445;
+                drop-shadow-blur: 8px;
+                border-color: #2E3445;
+                border-width: 1px;
+                event-description := LineEdit {
+                    font-size: 14px;
+                    width: parent.width;
+                    height: parent.height;
+                    placeholder-text: "Event description (optional)";
+                }
+            }
+        }
+
+        HorizontalBox {
+            padding: 0;
+            height: 70px;
+            alignment: center;
+            spacing: 25px;
+
+            VerticalBox {
+                width: 50%;
+                padding: 0;
+                spacing: 15px;
+                Text {
+                    text: "Duration";
+                    font-size: 16px;
+                    color: #2E3445;
+                    font-weight: 200;
                 }
 
-                Rectangle {
+                duration-time := Timepicker {
+                    button_text: "HH:MM";
+                }
+            }
+
+            VerticalBox {
+                width: 50%;
+                padding: 0;
+                spacing: 15px;
+                Text {
+                    text: "Priority";
+                    font-size: 16px;
+                    color: #2E3445;
+                    font-weight: 200;
+                    horizontal-alignment: left;
+                }
+
+                HorizontalBox {
                     padding: 0;
-                    width: 100%;
-                    height: 40px;
-                    drop-shadow-color: #2E3445;
-                    drop-shadow-blur: 8px;
-                    border-color: #2E3445;
-                    border-width: 1px;
-                    event-description := LineEdit {
-                        font-size: 14px;
-                        width: parent.width;
-                        height: parent.height;
-                        placeholder-text: "Event description (optional)";
+                    spacing: 10px;
+                    width: 50%;
+                    alignment: start;
+                    priority-1 := PriorityButton {
+                        priority: 1;
+                        is_selected: true;
+                        toggle(priority) => {
+                            toggle_priorities(priority);
+                        }
+                    }
+
+                    priority-2 := PriorityButton {
+                        priority: 2;
+                        toggle(priority) => {
+                            toggle_priorities(priority);
+                        }
+                    }
+
+                    priority-3 := PriorityButton {
+                        priority: 3;
+                        toggle(priority) => {
+                            toggle_priorities(priority);
+                        }
+                    }
+
+                    priority-4 := PriorityButton {
+                        priority: 4;
+                        toggle(priority) => {
+                            toggle_priorities(priority);
+                        }
+                    }
+
+                    priority-5 := PriorityButton {
+                        priority: 5;
+                        toggle(priority) => {
+                            toggle_priorities(priority);
+                        }
                     }
                 }
+            }
+        }
+
+        VerticalBox {
+            padding: 0;
+            width: 50%;
+            height: 60px;
+            alignment: start;
+            spacing: 10px;
+
+            Text {
+                text: "Find on:";
+                font-size: 16px;
+                color: #2E3445;
+                font-weight: 600;
+            }
+
+            selected-weekdays := SelectedWeekdays { }
+        }
+
+        VerticalBox {
+            padding: 0;
+            spacing: 0px;
+            dynamic-slots := SuggestDynamicList {
+                slots: root.slots;
             }
 
             HorizontalBox {
+                alignment: end;
                 padding: 0;
-                height: 70px;
-                alignment: center;
-                spacing: 25px;
-
-                VerticalBox {
-                    width: 50%;
-                    padding: 0;
-                    spacing: 15px;
-                    Text {
-                        text: "Duration";
-                        font-size: 16px;
-                        color: #2E3445;
-                        font-weight: 200;
-                    }
-
-                    duration-time := Timepicker {
-                        button_text: "HH:MM";
+                CustomButton {
+                    text: "Cancel";
+                    width: 100px;
+                    height: 36px;
+                    clicked => {
+                        request-close();
                     }
                 }
 
-                VerticalBox {
-                    width: 50%;
-                    padding: 0;
-                    spacing: 15px;
-                    Text {
-                        text: "Priority";
-                        font-size: 16px;
-                        color: #2E3445;
-                        font-weight: 200;
-                        horizontal-alignment: left;
-                    }
-
-                    HorizontalBox {
-                        padding: 0;
-                        spacing: 10px;
-                        width: 50%;
-                        alignment: start;
-                        priority-1 := PriorityButton {
-                            priority: 1;
-                            is_selected: true;
-                            toggle(priority) => {
-                                toggle_priorities(priority);
-                            }
-                        }
-
-                        priority-2 := PriorityButton {
-                            priority: 2;
-                            toggle(priority) => {
-                                toggle_priorities(priority);
-                            }
-                        }
-
-                        priority-3 := PriorityButton {
-                            priority: 3;
-                            toggle(priority) => {
-                                toggle_priorities(priority);
-                            }
-                        }
-
-                        priority-4 := PriorityButton {
-                            priority: 4;
-                            toggle(priority) => {
-                                toggle_priorities(priority);
-                            }
-                        }
-
-                        priority-5 := PriorityButton {
-                            priority: 5;
-                            toggle(priority) => {
-                                toggle_priorities(priority);
-                            }
-                        }
-                    }
-                }
-            }
-
-            VerticalBox {
-                padding: 0;
-                width: 50%;
-                height: 60px;
-                alignment: start;
-                spacing: 10px;
-
-                Text {
-                    text: "Find on:";
-                    font-size: 16px;
-                    color: #2E3445;
-                    font-weight: 600;
-                }
-
-                selected-weekdays := SelectedWeekdays { }
-            }
-        }
-    }
-
-    Rectangle {
-        width: 100%;
-        height: 20%;
-        padding: 0;
-        HorizontalBox {
-            alignment: end;
-            padding: 0;
-            width: 100%;
-            CustomButton {
-                text: "Cancel";
-                width: 100px;
-                height: 36px;
-                clicked => {
-                    request-close();
-                }
-            }
-
-            CustomButton {
-                text: "Apply";
-                width: 100px;
-                height: 36px;
-                enabled: staticFormValid;
-                mouse-cursor: staticFormValid ? pointer : default;
-                border-color: #2E3445;
-                background: staticFormValid ? #2E3445 : #D5E2FA;
-                color: staticFormValid ? #D5E2FA : #2e344585;
-                clicked => {
-                    create_dynamic_event(
+                CustomButton {
+                    text: "Apply";
+                    width: 100px;
+                    height: 36px;
+                    enabled: staticFormValid;
+                    mouse-cursor: staticFormValid ? pointer : default;
+                    border-color: #2E3445;
+                    background: staticFormValid ? #2E3445 : #D5E2FA;
+                    color: staticFormValid ? #D5E2FA : #2e344585;
+                    clicked => {
+                        start_slots_searching(
                         event_name.text,
                         event_description.text,
                         duration-time.selected_time,
                         selected_priority,
                         selected-weekdays.get_selected_weekdays());
-                    request-close();
+                    }
                 }
             }
+
+            // Rectangle {
+            //     height: 100%;
+            //     width: 220px;
+            //     padding: 0;
+            //     background: red;
+            //     VerticalBox {
+            //         height: 100%;
+            //         width: 220px;
+            //         padding: 0;
+            //         alignment: end;
+                    
+            //     }
+            // }
         }
     }
 }

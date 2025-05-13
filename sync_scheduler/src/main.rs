@@ -115,7 +115,7 @@ fn main() {
 
     let calendar_state_clone = Rc::clone(&calendar_state);
     let weak_window = calendar_window.as_weak();
-    calendar_window.on_create_dynamic_event(
+    calendar_window.on_start_slots_searching(
         move |name: SharedString,
               description: SharedString,
               duration: Time,
@@ -135,22 +135,31 @@ fn main() {
 
             let weekdays: Vec<i32> = vecmodel
                 .iter()
-                .filter(|&idx| idx >= 0 && idx <= 6)
+                .filter(|&idx| (0..=6).contains(&idx))
                 .collect();
 
             let _ = slint::spawn_local(async move {
-                let join = handle.spawn(async move {
-                    create_new_dynamic_event(name, description, duration, priority, weekdays).await
-                });
+                let slots = match handle
+                    .spawn(async move {
+                        create_new_dynamic_event(name, description, duration, priority, weekdays)
+                            .await
+                    })
+                    .await
+                {
+                    Ok(Ok((slots, _))) => slots,
+                    Ok(Err(e)) => {
+                        eprintln!("Error creating event: {}", e);
+                        return;
+                    }
+                    Err(join_e) => {
+                        eprintln!("Tokio task failed: {}", join_e);
+                        return;
+                    }
+                };
 
-                match join.await {
-                    Ok(Ok(_)) => println!("Event created successfully"),
-                    Ok(Err(e)) => eprintln!("Error creating event: {}", e),
-                    Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
-                }
-
-                let state = state_rc.borrow_mut();
-                calendar_render(&window, state);
+                let formatted_slots = slint_format_slots(slots);
+                println!("hfguowehpfgpewugfh: {:?}", formatted_slots);
+                window.set_slots(ModelRc::new(VecModel::from(formatted_slots)));
             });
         },
     );

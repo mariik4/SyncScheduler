@@ -1,0 +1,142 @@
+import { ScrollView, Date, Time, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { CustomButton } from "../custom-button.slint";
+
+export struct SlintSlot {
+  id: string,
+  start_time: Time,
+  end_time: Time,
+  date: Date,
+  weekday: string,
+}
+
+component Slot inherits Rectangle {
+    in property <Time> start_time;
+    in property <Time> end_time;
+    in property <Date> date;
+    in property <string> weekday;
+    width: 100%;
+    height: 80px;
+    background: #2E3445;
+    border-radius: 8px;
+    padding: 0px;
+
+    callback create-dynamic-event();
+
+    VerticalBox {
+        padding: 0;
+        spacing: 0;
+
+        HorizontalBox {
+            padding: 10px;
+            spacing: 30px;
+
+            VerticalBox {
+                padding: 0;
+                spacing: 5px;
+                Text {
+                    padding: 0;
+                    text: date.day + "." + date.month + "." + date.year;
+                    font-size: 14px;
+                    color: #f8fafc;
+                    font-weight: 600;
+                }
+
+                Text {
+                    padding: 0;
+                    text: weekday;
+                    font-size: 10px;
+                    color: #f8fafc;
+                    font-weight: 600;
+                }
+
+                Text {
+                    padding: 0;
+                    text: (start_time.hour < 10 ? "0" + start_time.hour : start_time.hour) + ":" + (start_time.minute < 10 ? "0" + start_time.minute : start_time.minute) + " - " + (end_time.hour < 10 ? "0" + end_time.hour : end_time.hour) + ":" + (end_time.minute < 10 ? "0" + end_time.minute : end_time.minute);
+                    font-size: 12px;
+                    color: #f8fafc;
+                    font-weight: 400;
+                }
+            }
+
+            VerticalBox {
+                padding: 0;
+                spacing: 10px;
+                alignment: center;
+                height: 100%;
+                CustomButton {
+                    text: "Ok";
+                    width: 25px;
+                    height: 25px;
+                    background: #f8fafc;
+                    font-size: 10px;
+                    color: #2E3445;
+                }
+            }
+        }
+    }
+}
+
+component SuggestDynamicList inherits Rectangle {
+    in property <[SlintSlot]> slots;
+
+    width: 400px;
+    height: 250px;
+    background: #f8fafc;
+    border-radius: 12px;
+    drop-shadow-color: #2E3445;
+    drop-shadow-blur: 130px;
+    border-width: 2px;
+    border-color: #2E3445;
+    padding: 0;
+    clip: true;
+
+    VerticalBox {
+        padding: 0;
+        spacing: 0;
+        height: 100%;
+        Rectangle {
+            width: 100%;
+            height: 50px;
+            padding: 0;
+            background: #2E3445;
+
+            Text {
+                text: "Select time slot";
+                color: #f8fafc;
+                font-size: 18px;
+                font-weight: 400;
+            }
+        }
+
+        Rectangle {
+            padding: 5px;
+            ScrollView {
+                width: 100%;
+                padding: 0;
+
+                VerticalBox {
+                    height: 100%;
+                    padding: 5px;
+                    spacing: 5px;
+
+                    if (slots.length == 0): Text {
+                        text: "Oooops! Seems like there nothing was found...";
+                        font-size: 14px;
+                        color: #2E3445;
+                        font-weight: 600;
+                        wrap: word-wrap;
+                    }
+
+                    for slot in slots: Slot {
+                        start_time: slot.start_time;
+                        end_time: slot.end_time;
+                        date: slot.date;
+                        weekday: slot.weekday;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export {SuggestDynamicList}
