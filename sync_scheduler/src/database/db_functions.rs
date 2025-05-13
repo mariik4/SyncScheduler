@@ -88,7 +88,8 @@ pub async fn get_events_in_day(user_id: Uuid, date: NaiveDate) -> Result<Vec<Eve
 
     let events = sqlx::query_as(
         "SELECT id, name, description, event_type, start_time, end_time, priority, postpone, user_id
-        FROM events WHERE ( start_time <= $3 AND end_time >= $2) AND user_id = $1",
+        FROM events WHERE ( start_time <= $3 AND end_time >= $2) AND user_id = $1
+        ORDER BY start_time ASC, end_time ASC",
     )
     .bind(user_id)
     .bind(dt_start)
@@ -117,7 +118,8 @@ pub async fn get_events_in_range(
 
     let events = sqlx::query_as(
         "SELECT id, name, description, event_type, start_time, end_time, priority, postpone, user_id
-        FROM events WHERE ( start_time <= $3 AND end_time >= $2) AND user_id = $1",
+        FROM events WHERE ( start_time <= $3 AND end_time >= $2) AND user_id = $1 
+        ORDER BY start_time ASC, end_time ASC",
     )
     .bind(user_id)
     .bind(dt_start)
@@ -205,6 +207,84 @@ pub async fn add_event_to_db(event: &Event) -> Result<(), Error> {
     .execute(&pool)
     .await?;
 
-    // let event = sqlx::query("select (1) as id, 'Herp Derpinson' as name")
+    Ok(())
+}
+
+pub async fn check_login_of_user(username: String, password: String) -> Result<User, Error> {
+    let url = std::env::var("DB_URL").unwrap();
+
+    let pool = Pool::<Postgres>::connect(&url).await?;
+
+    let user = sqlx::query_as::<_, User>(
+        "SELECT id, username, first_name, last_name, password
+        FROM users WHERE username = $1",
+    )
+    .bind(username)
+    .fetch_one(&pool)
+    .await?;
+
+    if user.username.is_empty() {
+        return Err(Error::RowNotFound);
+    }
+
+    if user.password != password {
+        return Err(Error::InvalidArgument("Wrong password".to_string()));
+    }
+
+    Ok(user)
+}
+
+pub async fn update_event_in_db(event: &Event) -> Result<(), Error> {
+    let url = std::env::var("DB_URL").unwrap();
+
+    let pool = Pool::<Postgres>::connect(&url).await?;
+
+    if event.start_time > event.end_time {
+        return Err(Error::InvalidArgument(
+            "Start time must be before end time".to_string(),
+        ));
+    }
+
+    let collisions = get_events_in_range(
+        event.user_id,
+        event.start_time.date(),
+        event.end_time.date(),
+    )
+    .await?;
+    for collision in collisions {
+        if (event.start_time >= collision.start_time && event.start_time <= collision.end_time)
+            || (event.end_time >= collision.start_time && event.end_time <= collision.end_time)
+            || (event.start_time <= collision.start_time && event.end_time >= collision.end_time)
+        {
+            return Err(Error::InvalidArgument(
+                "Event collides with existing event".to_string(),
+            ));
+        }
+    }
+
+    sqlx::query(
+        "UPDATE events SET name = $1, description = $2, start_time = $3, end_time = $4, priority = $5, postpone = $6
+        WHERE id = $7",
+    )
+    .bind(&event.name)
+    .bind(&event.description)
+    .bind(event.start_time)
+    .bind(event.end_time)
+    .bind(event.priority)
+    .bind(event.postpone)
+    .bind(event.id)
+    .execute(&pool)
+    .await?;
+    Ok(())
+}
+pub async fn delete_event_from_db(event_id: Uuid) -> Result<(), Error> {
+    let url = std::env::var("DB_URL").unwrap();
+
+    let pool = Pool::<Postgres>::connect(&url).await?;
+
+    sqlx::query("DELETE FROM events WHERE id = $1")
+        .bind(event_id)
+        .execute(&pool)
+        .await?;
     Ok(())
 }
