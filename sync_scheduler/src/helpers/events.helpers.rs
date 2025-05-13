@@ -1,4 +1,3 @@
-
 use chrono::Duration;
 
 use uuid::Uuid;
@@ -48,19 +47,81 @@ async fn create_new_static_event(
     Ok(())
 }
 
+async fn create_new_dynamic_event(
+    slot_pre_data: DynamicEventPreData,
+    slot: Option<Slot>,
+) -> Result<(), String> {
+    let name = slot_pre_data.name.to_string();
+    let description = slot_pre_data.description.to_string();
+    let priority = slot_pre_data.priority;
+
+    let slot_data = slot.ok_or_else(|| "Slot not found!")?;
+
+    let event = Event::new_dynamic(
+        name.into(),
+        description.into(),
+        NaiveDateTime::new(slot_data.date, slot_data.start_time),
+        NaiveDateTime::new(slot_data.date, slot_data.end_time),
+        priority,
+        Uuid::nil(),
+    );
+
+    if let Err(err) = add_event_to_db(&event).await {
+        eprintln!("DB error: {}", err);
+    }
+
+    Ok(())
+}
+
+async fn search_for_slots(
+    duration: Time,
+    weekdays: Vec<i32>,
+) -> Result<(Vec<Slot>, NaiveDate), String> {
+    let today = chrono::offset::Local::now().date_naive();
+    // we set the interval for slots looking 2 weeks
+    let end_date = today + chrono::Duration::days(14);
+
+    let naive_duration = NaiveTime::from_hms_opt(duration.hour as u32, duration.minute as u32, 0)
+        .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
+
+    let variants = find_dynamic_events_variants_by_weekdays(
+        weekdays.iter().map(|&x| x as u32).collect(),
+        naive_duration,
+        today,
+        end_date,
+    )
+    .await?;
+
+    let slots = variants
+        .iter()
+        .map(|&slot| Slot {
+            id: Uuid::new_v4().to_string(),
+            start_time: slot.time(),
+            end_time: slot.time()
+                + Duration::hours(naive_duration.hour() as i64)
+                + Duration::minutes(naive_duration.minute() as i64)
+                + Duration::seconds(naive_duration.second() as i64),
+            date: slot.date(),
+            weekday: slot.weekday().to_string(),
+        })
+        .collect();
+
+    Ok((slots, end_date))
+}
+
 async fn find_dynamic_events_variants_by_weekdays(
     selected_days: Vec<u32>,
     duration: NaiveTime,
     start_day: NaiveDate,
     end_day: NaiveDate,
 ) -> Result<Vec<NaiveDateTime>, String> {
-    let days_range = (end_day.signed_duration_since(start_day).num_days() + 1) as i64;
+    let days_range = end_day.signed_duration_since(start_day).num_days() + 1;
 
     let mut days = Vec::new();
 
     for i in 0..days_range {
         let day = start_day + Duration::days(i);
-        let day_of_week = day.weekday().num_days_from_monday() as u32;
+        let day_of_week = day.weekday().num_days_from_monday();
 
         if selected_days.contains(&day_of_week) {
             days.push(day);
@@ -70,6 +131,8 @@ async fn find_dynamic_events_variants_by_weekdays(
     let variants = find_dynamic_events_variants_by_naive_dates(days, duration)
         .await
         .map_err(|err| err.to_string())?;
+
+    println!("Found variants: {:?}", variants);
 
     Ok(variants)
 }
@@ -119,13 +182,13 @@ async fn find_dynamic_events_variants_by_naive_dates(
             if is_free {
                 let variant = NaiveDateTime::new(start_d, start_time);
                 variants.push(variant);
-                start_time = start_time + Duration::minutes(60);
-                end_time = end_time + Duration::minutes(60);
+                start_time += Duration::minutes(60);
+                end_time += Duration::minutes(60);
                 continue;
             }
 
-            start_time = start_time + Duration::minutes(15);
-            end_time = end_time + Duration::minutes(15);
+            start_time += Duration::minutes(15);
+            end_time += Duration::minutes(15);
         }
     }
     Ok(variants)

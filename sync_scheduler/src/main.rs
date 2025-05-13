@@ -4,8 +4,9 @@ include!("./helpers/events.helpers.rs");
 include!("./helpers/calendar.helpers.rs");
 include!("./store/calendar.store.rs");
 include!("./store/store.types.rs");
-include!("./db/events.db.rs");
 include!("./database/db_functions.rs");
+include!("./store/slots.store.rs");
+include!("./gui_render/slots.render.rs");
 
 use chrono::{Datelike, NaiveDate, NaiveDateTime, NaiveTime};
 use dotenv::dotenv;
@@ -15,7 +16,7 @@ use std::{
 };
 use tokio::runtime::Handle;
 
-use slint::{ModelRc, SharedString, VecModel};
+use slint::{Model, ModelRc, SharedString, VecModel};
 
 slint::include_modules!();
 
@@ -30,6 +31,7 @@ fn main() {
     // Create multi mutable reference to the calendar state
     // to be able to pass the state to the callbacks
     let calendar_state = Rc::new(RefCell::new(CalendarState::new(tokio_handler)));
+    let slots_state = Rc::new(RefCell::new(SlotsState::new()));
     // Set calendar initial state
     {
         // due to the mutable state in the code below I create mutable Ref,
@@ -88,7 +90,6 @@ fn main() {
             };
             let state_rc = calendar_state_clone.clone();
 
-
             let _ = slint::spawn_local(async move {
                 let join = handle.spawn(async move {
                     create_new_static_event(
@@ -111,9 +112,116 @@ fn main() {
                 let state = state_rc.borrow_mut();
                 calendar_render(&window, state);
             });
-
         },
     );
+
+    let calendar_state_clone = Rc::clone(&calendar_state);
+    let slots_state_clone = Rc::clone(&slots_state);
+    let weak_window = calendar_window.as_weak();
+    calendar_window.on_start_slots_searching(
+        move |name: SharedString,
+              description: SharedString,
+              duration: Time,
+              priority: i32,
+              selected_weekdays: ModelRc<i32>| {
+            let window = weak_window.unwrap();
+            let handle = {
+                let state = calendar_state_clone.borrow_mut();
+                state.get_tokio_handler()
+            };
+            let slots_rc = slots_state_clone.clone();
+            {
+                let event_data = DynamicEventPreData {
+                    name: name.into(),
+                    description: description.into(),
+                    priority: priority as i64,
+                };
+                let mut slots_state = slots_rc.borrow_mut();
+                slots_state.set_pending(event_data);
+                slots_render(&window, slots_state);
+            }
+
+            let vecmodel: &slint::VecModel<i32> = selected_weekdays
+                .as_any()
+                .downcast_ref::<slint::VecModel<i32>>()
+                .expect("ModelRc is not a VecModel");
+
+            let weekdays: Vec<i32> = vecmodel
+                .iter()
+                .filter(|&idx| (0..=6).contains(&idx))
+                .collect();
+
+            let _ = slint::spawn_local(async move {
+                let join_result = handle
+                    .spawn(async move { search_for_slots(duration, weekdays).await })
+                    .await;
+
+                let mut slots_state = slots_rc.borrow_mut();
+                match join_result {
+                    Ok(Ok((slots, _))) => {
+                        slots_state.set_success(slots);
+                    }
+                    Ok(Err(e)) => {
+                        eprintln!("Error creating event: {}", e);
+                        slots_state.set_failed(e.to_string());
+                    }
+                    Err(join_e) => {
+                        eprintln!("Tokio task failed: {}", join_e);
+                    }
+                };
+
+                slots_render(&window, slots_state);
+            });
+        },
+    );
+
+    let calendar_state_clone = Rc::clone(&calendar_state);
+    let slots_state_clone = Rc::clone(&slots_state);
+    let weak_window = calendar_window.as_weak();
+    calendar_window.on_create_dynamic_event(move |slot_id: SharedString| {
+        let window = weak_window.unwrap();
+
+        let handle = {
+            let state = calendar_state_clone.borrow_mut();
+            state.get_tokio_handler()
+        };
+        let state_rc = calendar_state_clone.clone();
+        let slots_rc = slots_state_clone.clone();
+
+        let (event_data, slot_data) = {
+            let slots_state = slots_rc.borrow();
+
+            let slot = slots_state
+                .slots
+                .iter()
+                .find(|s| s.id == slot_id.to_string())
+                .cloned();
+
+            let event_data = slots_state.event_data.clone().expect("Missing event data");
+            (event_data, slot)
+        };
+
+        let _ = slint::spawn_local(async move {
+            let join =
+                handle.spawn(async move { create_new_dynamic_event(event_data, slot_data).await });
+
+            match join.await {
+                Ok(Ok(_)) => println!("Event created successfully"),
+                Ok(Err(e)) => eprintln!("Error creating event: {}", e),
+                Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
+            }
+
+            {
+                let mut slots_state = slots_rc.borrow_mut();
+                // reset data for the new searching
+                slots_state.reset();
+                slots_render(&window, slots_state);
+            }
+
+            let state = state_rc.borrow_mut();
+            calendar_render(&window, state);
+        });
+    });
 
     calendar_window.run().unwrap();
 }

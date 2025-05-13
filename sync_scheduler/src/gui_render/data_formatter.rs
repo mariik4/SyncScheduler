@@ -83,3 +83,30 @@ pub fn slint_format_events(
         })
         .collect()
 }
+
+pub fn slint_format_slots(
+    slots: &Vec<Slot>,
+) -> std::vec::Vec<slint_generatedCalendarWindow::SlintSlot> {
+    slots
+        .iter()
+        .map(|slot| slint_generatedCalendarWindow::SlintSlot {
+            id: slot.id.to_string().into(),
+            start_time: Time {
+                hour: slot.start_time.hour() as i32,
+                minute: slot.start_time.minute() as i32,
+                second: slot.start_time.second() as i32,
+            },
+            end_time: Time {
+                hour: slot.end_time.hour() as i32,
+                minute: slot.end_time.minute() as i32,
+                second: slot.end_time.second() as i32,
+            },
+            date: Date {
+                year: slot.date.year(),
+                month: slot.date.month() as i32,
+                day: slot.date.day() as i32,
+            },
+            weekday: slot.weekday.clone().into(),
+        })
+        .collect()
+}

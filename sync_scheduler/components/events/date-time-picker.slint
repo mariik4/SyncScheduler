@@ -1,0 +1,67 @@
+import { CustomButton} from "../custom-button.slint";
+import { DatePickerPopup, TimePickerPopup, Time, Date } from "std-widgets.slint";
+component StyledButton inherits CustomButton {
+    width: 100%;
+    height: 100%;
+}
+
+component Datepicker inherits Rectangle {
+    in-out property <Date> selected_date;
+    out property <string> button_text: selected_date.day + "." + selected_date.month + "." + selected_date.year;
+    padding: 0;
+    width: 150px;
+    height: 36px;
+
+    datepicker-button := StyledButton {
+        text: button_text;
+        clicked => {
+            date-picker.show();
+        }
+    }
+
+    date-picker := DatePickerPopup {
+        close-policy: PopupClosePolicy.no-auto-close;
+        date: selected_date;
+        accepted(date) => {
+            selected_date = date;
+            button_text = date.day + "." + date.month + "." + date.year;
+            date-picker.close();
+        }
+        canceled => {
+            date-picker.close();
+        }
+    }
+}
+
+component Timepicker inherits Rectangle {
+    in property <string> button_text;
+    out property <Time> selected_time;
+    in-out property <bool> is_valid;
+    padding: 0;
+    width: 150px;
+    height: 36px;
+    drop-shadow-blur: is_valid ? 0px : 8px;
+    drop-shadow-color: red;
+
+    timepicker-button := StyledButton {
+        text: button_text;
+        clicked => {
+            time-picker.show();
+        }
+    }
+
+    time-picker := TimePickerPopup {
+        close-policy: PopupClosePolicy.no-auto-close;
+        accepted(time) => {
+            selected_time = time;
+            is_valid = true;
+            timepicker-button.text = time.hour + ":" + (time.minute < 10 ? "0" + time.minute : time.minute);
+            time-picker.close();
+        }
+        canceled => {
+            time-picker.close();
+        }
+    }
+}
+
+export {Datepicker, Timepicker}

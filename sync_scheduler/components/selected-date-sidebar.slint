@@ -1,0 +1,177 @@
+import { HorizontalBox, VerticalBox, Date, Time, ScrollView } from "std-widgets.slint";
+
+export struct SlintEvent {
+    id: string,
+    name: string,
+    description: string,
+    event_type: string,
+    start_time: Time,
+    end_time: Time,
+    priority: int,
+    postpone: int,
+}
+
+component SelectedDateSidebar inherits Rectangle {
+    in property <Date> selected_date;
+    in property <[SlintEvent]> events;
+    in property <bool> is_events_fetching_error;
+
+    width: 25%;
+    height: 100%;
+    background: #2E3445;
+    padding: 10px;
+    padding-top: 20px;
+
+    VerticalBox {
+        height: 100%;
+        spacing: 20px;
+        padding: 15px;
+        HorizontalBox {
+            height: 8%;
+            spacing: 0;
+            padding: 10px;
+            alignment: center;
+            VerticalBox {
+                width: 100%;
+                height: 100%;
+                padding: 0;
+                spacing: 0;
+                alignment: center;
+
+                HorizontalBox {
+                    width: 100%;
+                    height: 100%;
+                    padding: 0;
+                    spacing: 0;
+                    alignment: center;
+                    Text {
+                        text: selected_date.day + "." + selected_date.month + "." + selected_date.year;
+                        font-size: 28px;
+                        font-weight: 600;
+                        color: #D5E2FA;
+                    }
+                }
+            }
+        }
+
+        VerticalBox {
+            width: 100%;
+            height: 75%;
+            padding: 0;
+            spacing: 10px;
+
+            Text {
+                text: "You plans for today:";
+                font-size: 20px;
+                color: #D5E2FA;
+                font-weight: 600;
+            }
+
+            Rectangle {
+                padding: 10px;
+                width: 100%;
+                height: 100%;
+                ScrollView {
+                    width: 100%;
+                    height: 100%;
+                    padding: 0;
+
+                    VerticalBox {
+                        spacing: 20px;
+                        padding: 0;
+                        if is_events_fetching_error: Text {
+                            text: "Failed to fetch the events";
+                            color: #FF0000;
+                            font-size: 18px;
+                        }
+                        if events.length == 0: Text {
+                            text: "It seems you have no plans for today ...";
+                            color: #D5E2FA;
+                            font-size: 18px;
+                        }
+                        for event in events: Rectangle {
+                            width: 100%;
+                            height: 120px;
+                            background: #fff;
+                            padding: 0;
+                            border-radius: 10px;
+                            VerticalBox {
+                                width: 100%;
+                                padding: 15px;
+                                spacing: 10px;
+
+                                HorizontalBox {
+                                    spacing: 10px;
+                                    padding: 0;
+                                    height: 18px;
+
+                                    Rectangle {
+                                        width: 18px;
+                                        height: 18px;
+                                        background: event.priority == 1 ? #2975f9 : (event.priority == 2 ? #509737 : (event.priority == 3 ? #feb643 : (event.priority == 4 ? #ff6e3a : #e94525)));
+                                        border-radius: 5px;
+                                    }
+
+                                    Text {
+                                        padding: 0;
+                                        text: event.name;
+                                        font-size: 16px;
+                                        color: #2E3445;
+                                        font-weight: 600;
+                                        wrap: word-wrap;
+                                    }
+                                }
+
+                                HorizontalBox {
+                                    width: 100%;
+                                    height: 20px;
+                                    padding: 0;
+                                    spacing: 10px;
+                                    Text {
+                                        padding: 0;
+                                        text: (event.start_time.hour < 10 ? "0" + event.start_time.hour : event.start_time.hour) + ":" + (event.start_time.minute < 10 ? "0" + event.start_time.minute : event.start_time.minute) + " - " + (event.end_time.hour < 10 ? "0" + event.end_time.hour : event.end_time.hour) + ":" + (event.end_time.minute < 10 ? "0" + event.end_time.minute : event.end_time.minute);
+                                        font-size: 14px;
+                                        color: #2e34459b;
+                                        font-weight: 600;
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: 40px;
+                                    width: 100%;
+                                    padding: 0;
+
+                                    Text {
+                                        height: 100%;
+                                        width: 100%;
+                                        padding: 0;
+                                        text: event.description == "" ? "-" : event.description;
+                                        font-size: 12px;
+                                        color: #2E3445;
+                                        wrap: word-wrap;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalBox {
+            height: 10%;
+            spacing: 0;
+            padding: 0;
+            Rectangle {
+                Text {
+                    text: "Events";
+                    font-size: 14px;
+                    color: #D5E2FA;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}
+
+export {SelectedDateSidebar}
