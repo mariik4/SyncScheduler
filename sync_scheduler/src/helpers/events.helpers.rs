@@ -76,19 +76,26 @@ async fn create_new_dynamic_event(
 async fn search_for_slots(
     duration: Time,
     weekdays: Vec<i32>,
-) -> Result<(Vec<Slot>, NaiveDate), String> {
-    let today = chrono::offset::Local::now().date_naive();
-    // we set the interval for slots looking 2 weeks
-    let end_date = today + chrono::Duration::days(14);
-
+    range_start: Date,
+    range_end: Date,
+) -> Result<Vec<Slot>, String> {
     let naive_duration = NaiveTime::from_hms_opt(duration.hour as u32, duration.minute as u32, 0)
-        .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
+        .ok_or_else(|| "Unsupported time format for duration time".to_owned())?;
+    let naive_range_start = NaiveDate::from_ymd_opt(
+        range_start.year,
+        range_start.month as u32,
+        range_start.day as u32,
+    )
+    .ok_or_else(|| "Unsupported time format for start range time".to_owned())?;
+    let naive_range_end =
+        NaiveDate::from_ymd_opt(range_end.year, range_end.month as u32, range_end.day as u32)
+            .ok_or_else(|| "Unsupported time format for end range time".to_owned())?;
 
     let variants = find_dynamic_events_variants_by_weekdays(
         weekdays.iter().map(|&x| x as u32).collect(),
         naive_duration,
-        today,
-        end_date,
+        naive_range_start,
+        naive_range_end,
     )
     .await?;
 
@@ -106,7 +113,7 @@ async fn search_for_slots(
         })
         .collect();
 
-    Ok((slots, end_date))
+    Ok(slots)
 }
 
 async fn find_dynamic_events_variants_by_weekdays(
@@ -132,8 +139,6 @@ async fn find_dynamic_events_variants_by_weekdays(
         .await
         .map_err(|err| err.to_string())?;
 
-    println!("Found variants: {:?}", variants);
-
     Ok(variants)
 }
 
@@ -142,6 +147,12 @@ async fn find_dynamic_events_variants_by_naive_dates(
     duration: NaiveTime,
 ) -> Result<Vec<NaiveDateTime>, String> {
     let mut variants = Vec::new();
+
+    let total_minutes = duration.hour() as i32 * 60 + duration.minute() as i32;
+    if total_minutes > 16 * 60 {
+        return Err("The available time window for scheduling events is from 6:00 AM to 10:00 PM. This means the maximum possible duration for a single event is 16 hours. Please select a shorter duration to allow the system find available slots.".to_owned());
+    }
+
     for date in selected_days {
         let start_d = NaiveDate::from_ymd_opt(date.year(), date.month(), date.day())
             .ok_or_else(|| "Unsupported date format for start date".to_owned())?;

@@ -180,9 +180,11 @@ component ActionsMenu inherits Rectangle {
     in property <string> error: "";
     in property <[SlintSlot]> slots;
     in property <Date> selected_date;
+    in property <Date> dynamic_range_start;
+    in property <Date> dynamic_range_end;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
     padding: 0;
     height: 35px;
@@ -196,11 +198,13 @@ component ActionsMenu inherits Rectangle {
             error: root.error;
             is_loading: root.is_loading;
             selected_date: root.selected_date;
+            dynamic_range_start: root.dynamic_range_start;
+            dynamic_range_end: root.dynamic_range_end;
             request-close => {
                 popup.close();
             }
-            start_slots_searching(name, description, duration, priority, weekdays) => {
-                root.start_slots_searching(name, description, duration, priority, weekdays);
+            start_slots_searching(name, description, duration, priority, weekdays, range_start, rnge_end) => {
+                root.start_slots_searching(name, description, duration, priority, weekdays, range_start, rnge_end);
             }
             collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                 root.collect-static-event-data(name, description, start_date, end_date, start_time, end_time);
@@ -213,7 +217,7 @@ component ActionsMenu inherits Rectangle {
 
         x: 200px;
         y: 130px;
-        height: 700px;
+        height: 600px;
         width: 700px;
         padding: 0px;
     }
@@ -266,6 +270,8 @@ export component CalendarWindow inherits Window {
     in property <bool> is_slots_loading: false;
     in property <string> slots_error: "";
     in property <[SlintSlot]> slots;
+    in property <Date> dynamic_range_start;
+    in property <Date> dynamic_range_end;
 
     in property <[SlintEvent]> events;
     in property <bool> is_events_fetching_error;
@@ -273,7 +279,7 @@ export component CalendarWindow inherits Window {
     callback previous-month;
     callback select_date(string);
     callback collect_static(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
 
     HorizontalBox {
@@ -307,11 +313,13 @@ export component CalendarWindow inherits Window {
                     error: root.slots_error;
                     is_loading: root.is_slots_loading;
                     selected_date: root.selected_date;
+                    dynamic_range_end: root.dynamic_range_end;
+                    dynamic_range_start: root.dynamic_range_start;
                     collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                         root.collect_static(name, description, start_date, end_date, start_time, end_time);
                     }
-                    start_slots_searching(name, description, duration, priority, weekdays) => {
-                        root.start_slots_searching(name, description, duration, priority, weekdays);
+                    start_slots_searching(name, description, duration, priority, weekdays, range_start, rnge_end) => {
+                        root.start_slots_searching(name, description, duration, priority, weekdays, range_start, rnge_end);
                     }
                     create-dynamic-event(slot-id) => {
                         root.create-dynamic-event(slot-id)

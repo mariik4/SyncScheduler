@@ -22,6 +22,7 @@ component Slot inherits Rectangle {
     padding: 0px;
 
     callback create-dynamic-event(slot_id: string);
+    callback close-request();
 
     VerticalBox {
         padding: 0;
@@ -74,6 +75,7 @@ component Slot inherits Rectangle {
 
                     clicked => {
                         create-dynamic-event(root.id);
+                        close-request();
                     }
                 }
             }
@@ -86,10 +88,13 @@ component SuggestDynamicList inherits Rectangle {
     in property <string> error: "";
     in property <[SlintSlot]> slots;
 
+    in property <bool> is_open: false;
+
     callback create-dynamic-event(slot_id: string);
+    callback close-request();
 
     width: 400px;
-    height: 250px;
+    height: 400px;
     background: #f8fafc;
     border-radius: 12px;
     drop-shadow-color: #2E3445;
@@ -98,10 +103,14 @@ component SuggestDynamicList inherits Rectangle {
     border-color: #2E3445;
     padding: 0;
     clip: true;
+    x: 100px;
+    y: 0px;
+    z: 100;
+    visible: is_open;
 
     VerticalBox {
         padding: 0;
-        spacing: 0;
+        spacing: 10px;
         height: 100%;
         Rectangle {
             width: 100%;
@@ -117,43 +126,99 @@ component SuggestDynamicList inherits Rectangle {
             }
         }
 
-        Rectangle {
-            padding: 5px;
-            ScrollView {
-                width: 100%;
-                padding: 0;
+        VerticalBox {
+            padding: 10px;
+            spacing: 10px;
+            Rectangle {
+                padding: 5px;
+                ScrollView {
+                    width: 100%;
+                    padding: 0;
 
-                VerticalBox {
-                    height: 100%;
-                    padding: 5px;
-                    spacing: 5px;
+                    VerticalBox {
+                        height: 100%;
+                        padding: 5px;
+                        spacing: 5px;
 
-                    if (error != ""): Text {
-                        text: error;
-                        font-size: 14px;
-                        color: red;
-                        font-weight: 600;
-                        wrap: word-wrap;
-                    }
+                        if (error != ""): Text {
+                            text: error;
+                            font-size: 14px;
+                            color: red;
+                            font-weight: 600;
+                            wrap: word-wrap;
+                        }
 
-                    if (is_loading): Text {
-                        text: "Activly searching for the slots. Please wait ....";
-                        font-size: 14px;
-                        color: #2E3445;
-                        font-weight: 600;
-                        wrap: word-wrap;
-                    }
+                        if (is_loading): Rectangle {
+                            padding: 0;
+                            height: 70px;
+                            VerticalBox {
+                                padding: 0;
+                                spacing: 10px;
+                                Text {
+                                    text: "Activly searching for the slots.";
+                                    font-size: 16px;
+                                    color: #2E3445;
+                                    font-weight: 600;
+                                    wrap: word-wrap;
+                                }
 
-                    for slot in slots: Slot {
-                        id: slot.id;
-                        start_time: slot.start_time;
-                        end_time: slot.end_time;
-                        date: slot.date;
-                        weekday: slot.weekday;
-                        create-dynamic-event(slot-id) => {
-                            root.create-dynamic-event(slot-id)
+                                Text {
+                                    text: "Please wait ....";
+                                    font-size: 14px;
+                                    color: #2E3445;
+                                    font-weight: 600;
+                                    wrap: word-wrap;
+                                }
+                            }
+                        }
+
+                        if (!is_loading && error == "" && slots.length == 0): Rectangle {
+                            padding: 0;
+                            height: 70px;
+                            VerticalBox {
+                                padding: 0;
+                                spacing: 10px;
+                                Text {
+                                    text: "Ooops. Nothing was found";
+                                    font-size: 16px;
+                                    color: #2E3445;
+                                    font-weight: 600;
+                                    wrap: word-wrap;
+                                }
+
+                                Text {
+                                    text: "Try to change searching interval or duration :)";
+                                    font-size: 14px;
+                                    color: #2E3445;
+                                    font-weight: 600;
+                                    wrap: word-wrap;
+                                }
+                            }
+                        }
+
+                        for slot in slots: Slot {
+                            id: slot.id;
+                            start_time: slot.start_time;
+                            end_time: slot.end_time;
+                            date: slot.date;
+                            weekday: slot.weekday;
+                            create-dynamic-event(slot-id) => {
+                                root.create-dynamic-event(slot-id)
+                            }
+                            close-request => {
+                                close-request();
+                            }
                         }
                     }
+                }
+            }
+
+            CustomButton {
+                text: "Cancel";
+                width: 100px;
+                height: 36px;
+                clicked => {
+                    close-request();
                 }
             }
         }

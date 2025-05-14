@@ -1,6 +1,6 @@
-import { VerticalBox, LineEdit, HorizontalBox, CheckBox, Time } from "std-widgets.slint";
+import { VerticalBox, LineEdit, HorizontalBox, CheckBox, Time, Date } from "std-widgets.slint";
 import {CustomButton} from "../custom-button.slint";
-import { Timepicker } from "date-time-picker.slint";
+import { Timepicker, Datepicker } from "date-time-picker.slint";
 import { SuggestDynamicList, SlintSlot } from "suggest-dynamics-list.slint";
 
 component WeekdayCheckbox inherits VerticalBox {
@@ -94,7 +94,7 @@ component PriorityButton inherits TouchArea {
 
     VerticalBox {
         padding: 0;
-        width: 30px;
+        width: 40px;
 
         Rectangle {
             padding: 2px;
@@ -127,6 +127,8 @@ component DynamicEventsModal inherits VerticalBox {
     in property <bool> is_loading: false;
     in property <string> error: "";
     in property <[SlintSlot]> slots;
+    in property <Date> dynamic_range_start;
+    in property <Date> dynamic_range_end;
 
     function toggle_priorities(priority: int) {
         selected_priority = priority;
@@ -138,189 +140,239 @@ component DynamicEventsModal inherits VerticalBox {
         priority-5.is_selected = priority == 5;
     }
     callback request-close();
-    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
 
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 30px;
     spacing: 0;
-    y: 50px;
+    padding-top: 40px;
 
-    VerticalBox {
-        width: 100%;
-        spacing: 30px;
+    Rectangle {
         padding: 0;
-        VerticalBox {
-            padding: 0;
-            Rectangle {
-                padding: 0;
-                width: 100%;
-                height: 40px;
-                drop-shadow-color: nameValid ? #2E3445 : red;
-                drop-shadow-blur: 8px;
-                border-color: #2E3445;
-                border-width: 1px;
-                event-name := LineEdit {
-                    font-size: 14px;
-                    width: parent.width;
-                    height: parent.height;
-                    placeholder-text: "Event name (required)";
-                }
+        dynamic-slots := SuggestDynamicList {
+            slots: root.slots;
+            error: root.error;
+            is_loading: root.is_loading;
+            create-dynamic-event(slot-id) => {
+                root.create-dynamic-event(slot-id);
             }
-
-            Rectangle {
-                padding: 0;
-                width: 100%;
-                height: 40px;
-                drop-shadow-color: #2E3445;
-                drop-shadow-blur: 8px;
-                border-color: #2E3445;
-                border-width: 1px;
-                event-description := LineEdit {
-                    font-size: 14px;
-                    width: parent.width;
-                    height: parent.height;
-                    placeholder-text: "Event description (optional)";
-                }
+            close-request => {
+                dynamic-slots.is_open = false;
             }
         }
 
-        HorizontalBox {
+        VerticalBox {
+            width: 100%;
             padding: 0;
-            height: 70px;
-            alignment: center;
-            spacing: 25px;
+            alignment: space-between;
 
             VerticalBox {
-                width: 50%;
                 padding: 0;
-                spacing: 15px;
-                Text {
-                    text: "Duration";
-                    font-size: 16px;
-                    color: #2E3445;
-                    font-weight: 200;
-                }
+                spacing: 30px;
+                height: 80%;
 
-                duration-time := Timepicker {
-                    button_text: "HH:MM";
-                }
-            }
+                VerticalBox {
+                    padding: 0;
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+                        drop-shadow-color: nameValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+                        event-name := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Event name (required)";
+                        }
+                    }
 
-            VerticalBox {
-                width: 50%;
-                padding: 0;
-                spacing: 15px;
-                Text {
-                    text: "Priority";
-                    font-size: 16px;
-                    color: #2E3445;
-                    font-weight: 200;
-                    horizontal-alignment: left;
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+                        drop-shadow-color: #2E3445;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+                        event-description := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Event description (optional)";
+                        }
+                    }
                 }
 
                 HorizontalBox {
                     padding: 0;
+                    height: 70px;
+                    alignment: center;
+                    spacing: 25px;
+
+                    VerticalBox {
+                        width: 50%;
+                        padding: 0;
+                        spacing: 15px;
+                        Text {
+                            text: "Duration";
+                            font-size: 16px;
+                            color: #2E3445;
+                            font-weight: 200;
+                        }
+
+                        duration-time := Timepicker {
+                            button_text: "HH:MM";
+                        }
+                    }
+
+                    VerticalBox {
+                        width: 50%;
+                        padding: 0;
+                        spacing: 15px;
+                        Text {
+                            text: "Priority";
+                            font-size: 16px;
+                            color: #2E3445;
+                            font-weight: 200;
+                            horizontal-alignment: left;
+                        }
+
+                        HorizontalBox {
+                            padding: 0;
+                            padding-left: 50px;
+                            spacing: 10px;
+                            width: 50%;
+                            alignment: start;
+                            priority-1 := PriorityButton {
+                                priority: 1;
+                                is_selected: true;
+                                toggle(priority) => {
+                                    toggle_priorities(priority);
+                                }
+                            }
+
+                            priority-2 := PriorityButton {
+                                priority: 2;
+                                toggle(priority) => {
+                                    toggle_priorities(priority);
+                                }
+                            }
+
+                            priority-3 := PriorityButton {
+                                priority: 3;
+                                toggle(priority) => {
+                                    toggle_priorities(priority);
+                                }
+                            }
+
+                            priority-4 := PriorityButton {
+                                priority: 4;
+                                toggle(priority) => {
+                                    toggle_priorities(priority);
+                                }
+                            }
+
+                            priority-5 := PriorityButton {
+                                priority: 5;
+                                toggle(priority) => {
+                                    toggle_priorities(priority);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                VerticalBox {
+                    padding: 0;
                     spacing: 10px;
+
+                    Text {
+                        text: "Dynamic search interval";
+                        font-size: 16px;
+                        color: #2E3445;
+                    }
+
+                    Text {
+                        text: "(default 2 weeks)";
+                        font-size: 10px;
+                        color: #2E3445;
+                    }
+
+                    HorizontalBox {
+                        padding: 0;
+                        spacing: 20px;
+
+                        start-range-date := Datepicker {
+                            selected_date: dynamic_range_start;
+                        }
+
+                        end-range-date := Datepicker {
+                            selected_date: dynamic_range_end;
+                        }
+                    }
+                }
+
+                VerticalBox {
+                    padding: 0;
                     width: 50%;
+                    height: 60px;
                     alignment: start;
-                    priority-1 := PriorityButton {
-                        priority: 1;
-                        is_selected: true;
-                        toggle(priority) => {
-                            toggle_priorities(priority);
-                        }
+                    spacing: 10px;
+
+                    Text {
+                        text: "Find on:";
+                        font-size: 16px;
+                        color: #2E3445;
+                        font-weight: 600;
                     }
 
-                    priority-2 := PriorityButton {
-                        priority: 2;
-                        toggle(priority) => {
-                            toggle_priorities(priority);
-                        }
-                    }
-
-                    priority-3 := PriorityButton {
-                        priority: 3;
-                        toggle(priority) => {
-                            toggle_priorities(priority);
-                        }
-                    }
-
-                    priority-4 := PriorityButton {
-                        priority: 4;
-                        toggle(priority) => {
-                            toggle_priorities(priority);
-                        }
-                    }
-
-                    priority-5 := PriorityButton {
-                        priority: 5;
-                        toggle(priority) => {
-                            toggle_priorities(priority);
-                        }
-                    }
-                }
-            }
-        }
-
-        VerticalBox {
-            padding: 0;
-            width: 50%;
-            height: 60px;
-            alignment: start;
-            spacing: 10px;
-
-            Text {
-                text: "Find on:";
-                font-size: 16px;
-                color: #2E3445;
-                font-weight: 600;
-            }
-
-            selected-weekdays := SelectedWeekdays { }
-        }
-
-        VerticalBox {
-            padding: 0;
-            spacing: 0px;
-            dynamic-slots := SuggestDynamicList {
-                slots: root.slots;
-                error: root.error;
-                is_loading: root.is_loading;
-                create-dynamic-event(slot-id) => {
-                    root.create-dynamic-event(slot-id)
+                    selected-weekdays := SelectedWeekdays { }
                 }
             }
 
-            HorizontalBox {
-                alignment: end;
+            VerticalBox {
                 padding: 0;
-                CustomButton {
-                    text: "Cancel";
-                    width: 100px;
-                    height: 36px;
-                    clicked => {
-                        request-close();
-                    }
-                }
+                spacing: 0px;
+                height: 20%;
 
-                CustomButton {
-                    text: "Apply";
-                    width: 100px;
-                    height: 36px;
-                    enabled: staticFormValid;
-                    mouse-cursor: staticFormValid ? pointer : default;
-                    border-color: #2E3445;
-                    background: staticFormValid ? #2E3445 : #D5E2FA;
-                    color: staticFormValid ? #D5E2FA : #2e344585;
-                    clicked => {
-                        start_slots_searching(
+                HorizontalBox {
+                    alignment: end;
+                    padding: 0;
+                    CustomButton {
+                        text: "Cancel";
+                        width: 100px;
+                        height: 36px;
+                        clicked => {
+                            request-close();
+                        }
+                    }
+
+                    CustomButton {
+                        text: "Apply";
+                        width: 100px;
+                        height: 36px;
+                        enabled: staticFormValid;
+                        mouse-cursor: staticFormValid ? pointer : default;
+                        border-color: #2E3445;
+                        background: staticFormValid ? #2E3445 : #D5E2FA;
+                        color: staticFormValid ? #D5E2FA : #2e344585;
+                        clicked => {
+                            start_slots_searching(
                         event_name.text,
                         event_description.text,
                         duration-time.selected_time,
                         selected_priority,
-                        selected-weekdays.get_selected_weekdays());
+                        selected-weekdays.get_selected_weekdays(),
+                        start-range-date.selected_date, end-range-date.selected_date);
+
+                            dynamic-slots.is_open = true;
+                            ;
+                        }
                     }
                 }
             }
