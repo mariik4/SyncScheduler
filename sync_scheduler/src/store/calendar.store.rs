@@ -113,6 +113,10 @@ impl CalendarState {
     pub fn get_user_id(&self) -> Option<Uuid> {
         self.user.as_ref().map(|u| u.id)
     }
+
+    pub fn logout_user(&mut self) {
+        self.user = None;
+    }
 }
 
 impl Default for CalendarState {

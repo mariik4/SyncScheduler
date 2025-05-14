@@ -82,6 +82,19 @@ component LoginModal inherits Rectangle {
                     padding-top: 20px;
                     width: 100%;
                     CustomButton {
+                        text: "Reset";
+                        width: 100px;
+                        height: 36px;
+                        background: #2E3445;
+                        color: #D5E2FA;
+                        mouse-cursor: pointer;
+                        clicked => {
+                            passw.text = "";
+                            login-name.text = "";
+                        }
+                    }
+
+                    CustomButton {
                         text: "Log In";
                         width: 100px;
                         height: 36px;
@@ -188,6 +201,21 @@ component LoginModal inherits Rectangle {
                     padding: 0;
                     padding-top: 20px;
                     width: 100%;
+                    CustomButton {
+                        text: "Reset";
+                        width: 100px;
+                        height: 36px;
+                        background: #2E3445;
+                        color: #D5E2FA;
+                        mouse-cursor: pointer;
+                        clicked => {
+                            newpassw.text = "";
+                            registration-username.text = "";
+                            registration-surname.text = "";
+                            registration-name.text = "";
+                        }
+                    }
+
                     CustomButton {
                         text: "Create user";
                         width: 100px;

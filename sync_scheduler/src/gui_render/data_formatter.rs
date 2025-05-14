@@ -85,7 +85,7 @@ pub fn slint_format_events(
 }
 
 pub fn slint_format_slots(
-    slots: &Vec<Slot>,
+    slots: &[Slot],
 ) -> std::vec::Vec<slint_generatedCalendarWindow::SlintSlot> {
     slots
         .iter()

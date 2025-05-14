@@ -24,7 +24,7 @@ component ModalWindow inherits Rectangle {
 
     in property <Date> selected_date;
 
-    callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback create_static_event(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
     callback request-close();
@@ -38,8 +38,8 @@ component ModalWindow inherits Rectangle {
             padding: 0;
             StaticEventModal {
                 selected_date: selected_date;
-                collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
-                    root.collect-static-event-data(name, description, start_date, end_date, start_time, end_time);
+                create_static_event(name, description, start_date, end_date, start_time, end_time) => {
+                    root.create_static_event(name, description, start_date, end_date, start_time, end_time);
                 }
                 request-close() => {
                     root.request-close();
