@@ -60,6 +60,7 @@ fn main() {
                 Ok(Ok(user)) => {
                     calendar_state.login_user(&user);
                     after_login_register_render(&window, &user);
+                    calendar_render(&window, calendar_state);
                 }
                 Ok(Err(e)) => eprintln!("Error in check_login_of_user: {}", e),
                 Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
@@ -98,6 +99,7 @@ fn main() {
                     Ok(Ok(user)) => {
                         calendar_state.login_user(&user);
                         after_login_register_render(&window, &user);
+                        calendar_render(&window, calendar_state);
                     }
                     Ok(Err(e)) => eprintln!("Error in check_login_of_user: {}", e),
                     Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
@@ -154,6 +156,14 @@ fn main() {
                 let state = calendar_state_clone.borrow_mut();
                 state.get_tokio_handler()
             };
+            let calendar_state = calendar_state_clone.borrow();
+            let user_id = match calendar_state.get_user_id() {
+                Some(id) => id,
+                None => {
+                    eprint!("User not found");
+                    return;
+                }
+            };
             let state_rc = calendar_state_clone.clone();
 
             let _ = slint::spawn_local(async move {
@@ -165,6 +175,7 @@ fn main() {
                         end_date,
                         start_time,
                         end_time,
+                        user_id,
                     )
                     .await
                 });
@@ -208,6 +219,14 @@ fn main() {
                 slots_state.set_pending(event_data);
                 slots_render(&window, slots_state);
             }
+            let state = calendar_state_clone.borrow();
+            let user_id = match state.get_user_id() {
+                Some(id) => id,
+                None => {
+                    eprint!("User not found");
+                    return;
+                }
+            };
 
             let vecmodel: &slint::VecModel<i32> = selected_weekdays
                 .as_any()
@@ -220,13 +239,13 @@ fn main() {
                 .collect();
 
             let _ = slint::spawn_local(async move {
+                let mut slots_state = slots_rc.borrow_mut();
+
                 let join_result = handle
                     .spawn(async move {
-                        search_for_slots(duration, weekdays, range_start, range_end).await
+                        search_for_slots(duration, weekdays, range_start, range_end, user_id).await
                     })
                     .await;
-
-                let mut slots_state = slots_rc.borrow_mut();
                 match join_result {
                     Ok(Ok(slots)) => {
                         slots_state.set_success(slots);
@@ -271,9 +290,19 @@ fn main() {
             (event_data, slot)
         };
 
+        let calendar_state = calendar_state_clone.borrow();
+        let user_id = match calendar_state.get_user_id() {
+            Some(id) => id,
+            None => {
+                eprint!("User not found");
+                return;
+            }
+        };
+
         let _ = slint::spawn_local(async move {
-            let join =
-                handle.spawn(async move { create_new_dynamic_event(event_data, slot_data).await });
+            let join = handle.spawn(async move {
+                create_new_dynamic_event(event_data, slot_data, user_id).await
+            });
 
             match join.await {
                 Ok(Ok(_)) => println!("Event created successfully"),

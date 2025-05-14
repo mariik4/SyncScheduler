@@ -109,6 +109,10 @@ impl CalendarState {
     pub fn login_user(&mut self, user: &User) {
         self.user = Some(user.clone());
     }
+
+    pub fn get_user_id(&self) -> Option<Uuid> {
+        self.user.as_ref().map(|u| u.id)
+    }
 }
 
 impl Default for CalendarState {

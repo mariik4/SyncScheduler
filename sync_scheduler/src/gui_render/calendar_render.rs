@@ -59,10 +59,17 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
 
         let win_weak = calendar_window.as_weak();
         let tokio_handler = calendar_state.get_tokio_handler();
+        let user_id = match calendar_state.get_user_id() {
+            Some(id) => id,
+            None => {
+                eprint!("User not found");
+                return;
+            }
+        };
 
         let _ = slint::spawn_local(async move {
             let join_result = tokio_handler
-                .spawn(async move { refetch_events(&full_date).await })
+                .spawn(async move { refetch_events(&full_date, user_id).await })
                 .await;
             let mut events_fetching_error = false;
 
