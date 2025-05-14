@@ -90,3 +90,16 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
         });
     }
 }
+
+fn after_login_register_render(calendar_window: &CalendarWindow, user: &User) {
+    calendar_window.set_is_login_layout_open(false);
+    let name_letter = user.first_name.chars().next().unwrap_or(' ');
+    let surname_letter = user.last_name.chars().next().unwrap_or(' ');
+
+    let user_icon = format!(
+        "{}{}",
+        name_letter.to_uppercase(),
+        surname_letter.to_uppercase()
+    );
+    calendar_window.set_user_icon(user_icon.into());
+}

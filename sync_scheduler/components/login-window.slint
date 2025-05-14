@@ -1,9 +1,9 @@
 import { TabWidget, DatePickerPopup, TimePickerPopup, Time, Date, Button, VerticalBox, HorizontalBox, CheckBox, LineEdit } from "std-widgets.slint";
 import { CustomButton } from "custom-button.slint";
 
-component LoginWindow inherits Rectangle {
-    height: 100%;
-    width: 100%;
+component LoginModal inherits Rectangle {
+    height: 400px;
+    width: 500px;
     background: #f8fafc;
     border-color: #e2e8f0;
     border-width: 1px;
@@ -13,15 +13,16 @@ component LoginWindow inherits Rectangle {
     property <bool> loginValid: login_name.text != "";
     property <bool> passValid: passw.text != "";
 
-    property <bool> registrationValid: registration_name.text != "" && registration_name.text != " ";
+    property <bool> new_usernameValid: registration_username.text != "";
     property <bool> new_passValid: newpassw.text != "";
+    property <bool> new_nameValid: registration-name.text != "";
+    property <bool> new_surnameValid: registration-surname.text != "";
 
     property <bool> staticFormValid: loginValid && passValid;
-    property <bool> registrationFormValid: registrationValid && new_passValid;
+    property <bool> registrationFormValid: new_usernameValid && new_passValid && new_nameValid && new_surnameValid;
 
     callback collect-login(login: string, password: string);
-    callback collect-registration(login: string, password: string);
-    callback request-close();
+    callback collect-registration(name: string, surname: string, username: string, password: string);
 
     TabWidget {
         width: 100%;
@@ -61,7 +62,7 @@ component LoginWindow inherits Rectangle {
                         width: 100%;
                         height: 40px;
 
-                        drop-shadow-color:passValid ? #2E3445 : red;
+                        drop-shadow-color: passValid ? #2E3445 : red;
                         drop-shadow-blur: 8px;
                         border-color: #2E3445;
                         border-width: 1px;
@@ -89,17 +90,13 @@ component LoginWindow inherits Rectangle {
                         color: staticFormValid ? #D5E2FA : #2e344585;
                         mouse-cursor: pointer;
                         clicked => {
-
                             collect-login(
                                 login-name.text,
-                                passw.text
-                            );
-
-                            request-close();
+                                passw.text);
                         }
                     }
                 }
-            }   
+            }
         }
 
         Tab {
@@ -118,12 +115,48 @@ component LoginWindow inherits Rectangle {
                         width: 100%;
                         height: 40px;
 
-                        drop-shadow-color: registrationValid ? #2E3445 : red;
+                        drop-shadow-color: new_nameValid ? #2E3445 : red;
                         drop-shadow-blur: 8px;
                         border-color: #2E3445;
                         border-width: 1px;
 
                         registration-name := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Name";
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color: new_surnameValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        registration-surname := LineEdit {
+                            font-size: 14px;
+                            width: parent.width;
+                            height: parent.height;
+                            placeholder-text: "Surname";
+                        }
+                    }
+
+                    Rectangle {
+                        padding: 0;
+                        width: 100%;
+                        height: 40px;
+
+                        drop-shadow-color: new_usernameValid ? #2E3445 : red;
+                        drop-shadow-blur: 8px;
+                        border-color: #2E3445;
+                        border-width: 1px;
+
+                        registration-username := LineEdit {
                             font-size: 14px;
                             width: parent.width;
                             height: parent.height;
@@ -136,7 +169,7 @@ component LoginWindow inherits Rectangle {
                         width: 100%;
                         height: 40px;
 
-                        drop-shadow-color:new_passValid ? #2E3445 : red;
+                        drop-shadow-color: new_passValid ? #2E3445 : red;
                         drop-shadow-blur: 8px;
                         border-color: #2E3445;
                         border-width: 1px;
@@ -164,20 +197,17 @@ component LoginWindow inherits Rectangle {
                         color: registrationFormValid ? #D5E2FA : #2e344585;
                         mouse-cursor: pointer;
                         clicked => {
-
                             collect-registration(
                                 registration_name.text,
-                                newpassw.text
-                            );
-
-                            request-close();
+                                registration_surname.text,
+                                registration_username.text,
+                                newpassw.text);
                         }
                     }
                 }
             }
         }
-
     }
 }
 
-export { LoginWindow }
+export { LoginModal }

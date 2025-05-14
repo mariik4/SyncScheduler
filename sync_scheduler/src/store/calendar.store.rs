@@ -1,9 +1,19 @@
+#[derive(sqlx::FromRow, Clone)]
+pub struct User {
+    pub id: Uuid,
+    pub username: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub password: String,
+}
+
 pub struct CalendarState {
     pub month: u32,
     pub year: i32,
     pub weeks: Vec<Vec<DayInfo>>,
     pub selected_date: Option<DayInfo>,
     pub tokio_handler: Handle,
+    pub user: Option<User>,
 }
 
 impl CalendarState {
@@ -32,6 +42,7 @@ impl CalendarState {
             weeks,
             selected_date,
             tokio_handler,
+            user: None,
         }
     }
 
@@ -93,6 +104,10 @@ impl CalendarState {
                 }
             }
         }
+    }
+
+    pub fn login_user(&mut self, user: &User) {
+        self.user = Some(user.clone());
     }
 }
 
