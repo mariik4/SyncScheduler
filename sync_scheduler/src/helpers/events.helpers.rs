@@ -3,8 +3,8 @@ use chrono::Duration;
 use uuid::Uuid;
 
 async fn create_new_static_event(
-    name: SharedString,
-    description: SharedString,
+    name: String,
+    description: String,
     start_date: Date,
     end_date: Date,
     start_time: Time,
@@ -34,8 +34,8 @@ async fn create_new_static_event(
     .ok_or_else(|| "Unsupported time format for end time".to_owned())?;
 
     let event = Event::new_static(
-        name.into(),
-        Some(description.into()),
+        name,
+        Some(description),
         NaiveDateTime::new(start_d, start_t),
         NaiveDateTime::new(end_d, end_t),
         user_id,

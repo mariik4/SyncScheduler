@@ -8,7 +8,7 @@ component StaticEventModal inherits VerticalBox {
     in property <bool> endTimeValid:   end_time.is_valid;
     property <bool> staticFormValid: nameValid && startTimeValid && endTimeValid;
 
-    callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
+    callback create_static_event(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback request-close();
 
     width: 100%;
@@ -234,7 +234,7 @@ component StaticEventModal inherits VerticalBox {
                 background: staticFormValid ? #2E3445 : #D5E2FA;
                 color: staticFormValid ? #D5E2FA : #2e344585;
                 clicked => {
-                    collect-static-event-data(
+                    create_static_event(
                   event-name.text,
                   event-description.text,
                   start-date.selected_date,
