@@ -59,10 +59,17 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
 
         let win_weak = calendar_window.as_weak();
         let tokio_handler = calendar_state.get_tokio_handler();
+        let user_id = match calendar_state.get_user_id() {
+            Some(id) => id,
+            None => {
+                eprint!("User not found");
+                return;
+            }
+        };
 
         let _ = slint::spawn_local(async move {
             let join_result = tokio_handler
-                .spawn(async move { refetch_events(&full_date).await })
+                .spawn(async move { refetch_events(&full_date, user_id).await })
                 .await;
             let mut events_fetching_error = false;
 
@@ -89,4 +96,17 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
             }
         });
     }
+}
+
+fn after_login_register_render(calendar_window: &CalendarWindow, user: &User) {
+    calendar_window.set_is_login_layout_open(false);
+    let name_letter = user.first_name.chars().next().unwrap_or(' ');
+    let surname_letter = user.last_name.chars().next().unwrap_or(' ');
+
+    let user_icon = format!(
+        "{}{}",
+        name_letter.to_uppercase(),
+        surname_letter.to_uppercase()
+    );
+    calendar_window.set_user_icon(user_icon.into());
 }

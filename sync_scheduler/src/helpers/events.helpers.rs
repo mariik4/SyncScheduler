@@ -9,6 +9,7 @@ async fn create_new_static_event(
     end_date: Date,
     start_time: Time,
     end_time: Time,
+    user_id: Uuid,
 ) -> Result<(), String> {
     let start_d = NaiveDate::from_ymd_opt(
         start_date.year,
@@ -37,7 +38,7 @@ async fn create_new_static_event(
         Some(description.into()),
         NaiveDateTime::new(start_d, start_t),
         NaiveDateTime::new(end_d, end_t),
-        Uuid::nil(),
+        user_id,
     );
 
     if let Err(err) = add_event_to_db(&event).await {
@@ -50,6 +51,7 @@ async fn create_new_static_event(
 async fn create_new_dynamic_event(
     slot_pre_data: DynamicEventPreData,
     slot: Option<Slot>,
+    user_id: Uuid,
 ) -> Result<(), String> {
     let name = slot_pre_data.name.to_string();
     let description = slot_pre_data.description.to_string();
@@ -63,7 +65,7 @@ async fn create_new_dynamic_event(
         NaiveDateTime::new(slot_data.date, slot_data.start_time),
         NaiveDateTime::new(slot_data.date, slot_data.end_time),
         priority,
-        Uuid::nil(),
+        user_id,
     );
 
     if let Err(err) = add_event_to_db(&event).await {
@@ -78,6 +80,7 @@ async fn search_for_slots(
     weekdays: Vec<i32>,
     range_start: Date,
     range_end: Date,
+    user_id: Uuid,
 ) -> Result<Vec<Slot>, String> {
     let naive_duration = NaiveTime::from_hms_opt(duration.hour as u32, duration.minute as u32, 0)
         .ok_or_else(|| "Unsupported time format for duration time".to_owned())?;
@@ -96,6 +99,7 @@ async fn search_for_slots(
         naive_duration,
         naive_range_start,
         naive_range_end,
+        user_id,
     )
     .await?;
 
@@ -121,6 +125,7 @@ async fn find_dynamic_events_variants_by_weekdays(
     duration: NaiveTime,
     start_day: NaiveDate,
     end_day: NaiveDate,
+    user_id: Uuid,
 ) -> Result<Vec<NaiveDateTime>, String> {
     let days_range = end_day.signed_duration_since(start_day).num_days() + 1;
 
@@ -135,7 +140,7 @@ async fn find_dynamic_events_variants_by_weekdays(
         }
     }
 
-    let variants = find_dynamic_events_variants_by_naive_dates(days, duration)
+    let variants = find_dynamic_events_variants_by_naive_dates(days, duration, user_id)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -145,6 +150,7 @@ async fn find_dynamic_events_variants_by_weekdays(
 async fn find_dynamic_events_variants_by_naive_dates(
     selected_days: Vec<NaiveDate>,
     duration: NaiveTime,
+    user_id: Uuid,
 ) -> Result<Vec<NaiveDateTime>, String> {
     let mut variants = Vec::new();
 
@@ -157,7 +163,7 @@ async fn find_dynamic_events_variants_by_naive_dates(
         let start_d = NaiveDate::from_ymd_opt(date.year(), date.month(), date.day())
             .ok_or_else(|| "Unsupported date format for start date".to_owned())?;
 
-        let events = get_events_in_day(Uuid::nil(), start_d)
+        let events = get_events_in_day(user_id, start_d)
             .await
             .map_err(|err| err.to_string())?;
 
@@ -205,8 +211,8 @@ async fn find_dynamic_events_variants_by_naive_dates(
     Ok(variants)
 }
 
-async fn refetch_events(date: &NaiveDate) -> Result<Vec<Event>, String> {
-    match get_events_in_day(Uuid::nil(), *date).await {
+async fn refetch_events(date: &NaiveDate, user_id: Uuid) -> Result<Vec<Event>, String> {
+    match get_events_in_day(user_id, *date).await {
         Ok(events) => Ok(events),
         Err(err) => Err(format!(
             "Unable to load the data for the selected date: {}",

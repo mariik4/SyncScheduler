@@ -3,6 +3,7 @@ import { ModalWindow } from "modal-window.slint";
 import { CustomButton } from "custom-button.slint";
 import { SelectedDateSidebar, SlintEvent } from "selected-date-sidebar.slint";
 import { SlintSlot, SuggestDynamicList } from "events/suggest-dynamics-list.slint";
+import { LoginModal } from "login-window.slint";
 
 struct SlintEventPreview {
     id: string,
@@ -182,13 +183,66 @@ component ActionsMenu inherits Rectangle {
     in property <Date> selected_date;
     in property <Date> dynamic_range_start;
     in property <Date> dynamic_range_end;
+    in property <string> user_icon;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
     padding: 0;
-    height: 35px;
+    height: 40px;
     width: 100%;
+    clip: true;
+
+    HorizontalBox {
+        spacing: 0;
+        padding: 0;
+        height: 40px;
+        width: 100%;
+        alignment: space-between;
+
+        VerticalBox {
+            width: 100px;
+            height: 40px;
+            padding: 0;
+            spacing: 0;
+            alignment: center;
+
+            CustomButton {
+                height: 30px;
+
+                Text {
+                    text: "New Event";
+                    font-size: 14px;
+                    color: #fff;
+                }
+
+                clicked => {
+                    popup.show();
+                }
+            }
+        }
+
+        VerticalBox {
+            alignment: center;
+            padding: 0;
+            height: 40px;
+            Rectangle {
+                width: 36px;
+                height: 40px;
+                padding: 0;
+                border-radius: 36px;
+                border-width: 2px;
+                border-color: #2E3445;
+
+                Text {
+                    text: user_icon;
+                    font-size: 14px;
+                    font-weight: 800;
+                    color: #2E3445;
+                }
+            }
+        }
+    }
 
     popup := PopupWindow {
         close-policy: close-on-click-outside;
@@ -221,36 +275,6 @@ component ActionsMenu inherits Rectangle {
         width: 700px;
         padding: 0px;
     }
-
-    HorizontalBox {
-        spacing: 0;
-        padding: 0;
-        height: 40px;
-        width: 100%;
-
-        VerticalBox {
-            width: 100px;
-            height: 40px;
-            padding: 0;
-            spacing: 0;
-            alignment: center;
-
-            CustomButton {
-                width: 100%;
-                height: 30px;
-
-                Text {
-                    text: "New Event";
-                    font-size: 14px;
-                    color: #fff;
-                }
-
-                clicked => {
-                    popup.show();
-                }
-            }
-        }
-    }
 }
 
 export component CalendarWindow inherits Window {
@@ -260,6 +284,10 @@ export component CalendarWindow inherits Window {
     padding: 0;
     padding-left: 2px;
     background: #dddee2;
+
+    in property <bool> is_login_layout_open: true;
+    in property <string> login_error_msg;
+    in property <string> user_icon;
 
     in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     in property <[[SlintDay]]> weeks;
@@ -281,6 +309,39 @@ export component CalendarWindow inherits Window {
     callback collect_static(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
+    callback collect-login(login: string, password: string);
+    callback collect-registration(name: string, surname: string, username: string, password: string);
+
+    login_layout := Rectangle {
+        x: 0;
+        y: 0;
+        width: 100%;
+        height: 100%;
+        visible: is_login_layout_open;
+        z: 100;
+        TouchArea {
+            width: 100%;
+            height: 100%;
+            Rectangle {
+                width: 100%;
+                height: 100%;
+                background: gray;
+                opacity: 0.8;
+            }
+        }
+
+        LoginModal {
+            z: 300;
+            x: parent.width / 2 - self.width / 2;
+            y: parent.height / 2 - self.height / 2;
+            collect-login(login, password) => {
+                root.collect-login(login, password);
+            }
+            collect-registration(name, surname, username, password) => {
+                root.collect-registration(name, surname, username, password)
+            }
+        }
+    }
 
     HorizontalBox {
         width: 100%;
@@ -315,6 +376,7 @@ export component CalendarWindow inherits Window {
                     selected_date: root.selected_date;
                     dynamic_range_end: root.dynamic_range_end;
                     dynamic_range_start: root.dynamic_range_start;
+                    user_icon: root.user_icon;
                     collect-static-event-data(name, description, start_date, end_date, start_time, end_time) => {
                         root.collect_static(name, description, start_date, end_date, start_time, end_time);
                     }

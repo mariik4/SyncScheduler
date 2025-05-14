@@ -64,15 +64,6 @@ impl Event {
     }
 }
 
-#[derive(sqlx::FromRow)]
-pub struct User {
-    pub id: Uuid,
-    pub username: String,
-    pub first_name: String,
-    pub last_name: String,
-    pub password: String,
-}
-
 pub async fn get_events_in_day(user_id: Uuid, date: NaiveDate) -> Result<Vec<Event>, Error> {
     let url = env::var("DB_URL").unwrap(); //6543
 
