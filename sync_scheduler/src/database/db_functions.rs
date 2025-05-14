@@ -139,6 +139,18 @@ pub async fn create_new_user_on_db(
     };
 
     sqlx::query(
+        "SELECT id, username, first_name, last_name, password
+        FROM users WHERE username = $1",
+    )
+    .bind(username.clone())
+    .fetch_one(&pool)
+    .await?;
+    // check if user already exists
+    if !username.is_empty() {
+        return Err(Error::InvalidArgument("User already exists".to_string()));
+    }
+
+    sqlx::query(
         "INSERT INTO users (id, username, first_name, last_name, password )
         VALUES ($1, $2, $3, $4, $5)",
     )
