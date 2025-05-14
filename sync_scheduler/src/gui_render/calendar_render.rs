@@ -26,11 +26,28 @@ fn calendar_render(calendar_window: &CalendarWindow, calendar_data: RefMut<Calen
         calendar_data.year
     );
     calendar_window.set_date_title(title.into());
+
+    let dynamic_range_start = chrono::offset::Local::now().date_naive();
+    let dynamic_range_end = dynamic_range_start + Duration::days(14);
+
+    println!("start range {:?}", dynamic_range_start);
+    println!("start range {:?}", dynamic_range_end);
+
+    calendar_window.set_dynamic_range_start(Date {
+        year: dynamic_range_start.year(),
+        month: dynamic_range_start.month() as i32,
+        day: dynamic_range_start.day() as i32,
+    });
+    calendar_window.set_dynamic_range_end(Date {
+        year: dynamic_range_end.year(),
+        month: dynamic_range_end.month() as i32,
+        day: dynamic_range_end.day() as i32,
+    });
+
     selected_date_render(calendar_window, calendar_data);
 }
 
 fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut<CalendarState>) {
-
     if let Some(date_struct) = calendar_state.selected_date.clone() {
         let full_date = date_struct.full_date.expect("Full date does not exist");
         let date = slint_generatedCalendarWindow::Date {
@@ -44,7 +61,6 @@ fn selected_date_render(calendar_window: &CalendarWindow, calendar_state: RefMut
         let tokio_handler = calendar_state.get_tokio_handler();
 
         let _ = slint::spawn_local(async move {
-
             let join_result = tokio_handler
                 .spawn(async move { refetch_events(&full_date).await })
                 .await;

@@ -123,7 +123,9 @@ fn main() {
               description: SharedString,
               duration: Time,
               priority: i32,
-              selected_weekdays: ModelRc<i32>| {
+              selected_weekdays: ModelRc<i32>,
+              range_start: Date,
+              range_end: Date| {
             let window = weak_window.unwrap();
             let handle = {
                 let state = calendar_state_clone.borrow_mut();
@@ -153,12 +155,14 @@ fn main() {
 
             let _ = slint::spawn_local(async move {
                 let join_result = handle
-                    .spawn(async move { search_for_slots(duration, weekdays).await })
+                    .spawn(async move {
+                        search_for_slots(duration, weekdays, range_start, range_end).await
+                    })
                     .await;
 
                 let mut slots_state = slots_rc.borrow_mut();
                 match join_result {
-                    Ok(Ok((slots, _))) => {
+                    Ok(Ok(slots)) => {
                         slots_state.set_success(slots);
                     }
                     Ok(Err(e)) => {

@@ -19,11 +19,13 @@ component ModalWindow inherits Rectangle {
     in property <bool> is_loading: false;
     in property <string> error: "";
     in property <[SlintSlot]> slots;
+    in property <Date> dynamic_range_start;
+    in property <Date> dynamic_range_end;
 
     in property <Date> selected_date;
 
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
-    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
+    callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
     callback request-close();
 
@@ -52,11 +54,13 @@ component ModalWindow inherits Rectangle {
                 slots: root.slots;
                 error: root.error;
                 is_loading: root.is_loading;
-                start_slots_searching(name, description, duration, priority, weekdays) => {
-                    root.start_slots_searching(name, description, duration, priority, weekdays);
+                dynamic_range_end: root.dynamic_range_end;
+                dynamic_range_start: root.dynamic_range_start;
+                start_slots_searching(name, description, duration, priority, weekdays, range_start, range_end) => {
+                    root.start_slots_searching(name, description, duration, priority, weekdays, range_start, range_end);
                 }
                 create-dynamic-event(slot-id) => {
-                    create-dynamic-event(slot-id)
+                    create-dynamic-event(slot-id);
                 }
                 request-close => {
                     root.request-close();

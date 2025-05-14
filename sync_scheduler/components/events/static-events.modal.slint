@@ -13,225 +13,236 @@ component StaticEventModal inherits VerticalBox {
 
     width: 100%;
     height: 100%;
-    padding: 20px;
-    spacing: 50px;
-    y: 50px;
+    padding: 30px;
+    spacing: 0;
+    padding-top: 40px;
+    alignment: space-between;
 
     VerticalBox {
         padding: 0;
-        Rectangle {
+        spacing: 40px;
+        height: 80%;
+        VerticalBox {
             padding: 0;
-            width: 100%;
-            height: 40px;
-            drop-shadow-color: nameValid ? #2E3445 : red;
-            drop-shadow-blur: 8px;
-            border-color: #2E3445;
-            border-width: 1px;
-            event-name := LineEdit {
-                font-size: 14px;
-                width: parent.width;
-                height: parent.height;
-                placeholder-text: "Event name (required)";
+            Rectangle {
+                padding: 0;
+                width: 100%;
+                height: 40px;
+                drop-shadow-color: nameValid ? #2E3445 : red;
+                drop-shadow-blur: 8px;
+                border-color: #2E3445;
+                border-width: 1px;
+                event-name := LineEdit {
+                    font-size: 14px;
+                    width: parent.width;
+                    height: parent.height;
+                    placeholder-text: "Event name (required)";
+                }
+            }
+
+            Rectangle {
+                padding: 0;
+                width: 100%;
+                height: 40px;
+                drop-shadow-color: #2E3445;
+                drop-shadow-blur: 8px;
+                border-color: #2E3445;
+                border-width: 1px;
+                event-description := LineEdit {
+                    font-size: 14px;
+                    width: parent.width;
+                    height: parent.height;
+                    placeholder-text: "Event description (optional)";
+                }
             }
         }
 
-        Rectangle {
+        HorizontalBox {
             padding: 0;
-            width: 100%;
-            height: 40px;
-            drop-shadow-color: #2E3445;
-            drop-shadow-blur: 8px;
-            border-color: #2E3445;
-            border-width: 1px;
-            event-description := LineEdit {
-                font-size: 14px;
-                width: parent.width;
-                height: parent.height;
-                placeholder-text: "Event description (optional)";
+            alignment: space-between;
+
+            // Date Period Section
+            VerticalBox {
+                padding: 0;
+                spacing: 5px;
+                height: 150px;
+                width: 200px;
+                alignment: start;
+
+                HorizontalBox {
+                    padding: 0;
+                    height: 40px;
+                    width: 120px;
+                    alignment: start;
+                    Text {
+                        text: "Select date period:";
+                        font-size: 18px;
+                        font-weight: 500;
+                        color: #2E3445;
+                        horizontal-alignment: left;
+                    }
+                }
+
+                VerticalBox {
+                    padding: 0;
+                    spacing: 8px;
+                    height: 100px;
+                    alignment: center;
+                    HorizontalBox {
+                        padding: 0;
+                        height: 40px;
+                        spacing: 15px;
+                        alignment: start;
+
+                        Rectangle {
+                            width: 70px;
+                            padding: 0;
+                            Text {
+                                text: "From:";
+                                color: #4b5563;
+                            }
+                        }
+
+                        start-date := Datepicker {
+                            selected_date: selected_date;
+                        }
+                    }
+
+                    HorizontalBox {
+                        padding: 0;
+                        spacing: 15px;
+                        height: 40px;
+                        alignment: start;
+
+                        Rectangle {
+                            width: 70px;
+                            padding: 0;
+                            Text {
+                                text: "To:";
+                                color: #4b5563;
+                            }
+                        }
+
+                        end-date := Datepicker {
+                            selected_date: start-date.selected_date;
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                height: 150px;
+                padding: 0;
+                width: 2px;
+                background: #2E3445;
+            }
+
+        // Time Period Section
+        VerticalBox {
+                padding: 0;
+                spacing: 5px;
+                height: 150px;
+                width: 250px;
+                alignment: start;
+                HorizontalBox {
+                    height: 40px;
+                    width: 120px;
+                    alignment: start;
+                    padding: 0;
+                    Text {
+                        text: "Select time period:";
+                        font-size: 18px;
+                        font-weight: 500;
+                        color: #2E3445;
+                        horizontal-alignment: left;
+                    }
+                }
+
+                VerticalBox {
+                    height: 100px;
+                    padding: 0;
+                    spacing: 8px;
+                    alignment: center;
+                    HorizontalBox {
+                        padding: 0;
+                        spacing: 15px;
+                        height: 40px;
+                        alignment: start;
+                        Rectangle {
+                            padding: 0;
+                            width: 70px;
+                            Text {
+                                text: "From:";
+                                color: #4b5563;
+                            }
+                        }
+
+                        start-time := Timepicker {
+                            button_text: "HH:MM";
+                        }
+                    }
+
+                    HorizontalBox {
+                        padding: 0;
+                        spacing: 15px;
+                        height: 40px;
+                        alignment: start;
+                        Rectangle {
+                            padding: 0;
+                            width: 70px;
+                            Text {
+                                text: "To:";
+                                color: #4b5563;
+                            }
+                        }
+
+                        end-time := Timepicker {
+                            button_text: "HH:MM";
+                        }
+                    }
+                }
             }
         }
     }
 
-    HorizontalBox {
+    VerticalBox {
         padding: 0;
-        alignment: space-between;
-
-      // Date Period Section
-      VerticalBox {
+        spacing: 0;
+        height: 20%;
+        HorizontalBox {
+            alignment: end;
             padding: 0;
-            spacing: 5px;
-            height: 150px;
-            width: 200px;
-            alignment: start;
-
-            HorizontalBox {
-                padding: 0;
-                height: 40px;
-                width: 120px;
-                alignment: start;
-                Text {
-                    text: "Select date period:";
-                    font-size: 18px;
-                    font-weight: 500;
-                    color: #2E3445;
-                    horizontal-alignment: left;
+            padding-top: 20px;
+            width: 100%;
+            CustomButton {
+                text: "Cancel";
+                width: 100px;
+                height: 36px;
+                mouse-cursor: pointer;
+                clicked => {
+                    request-close();
                 }
             }
 
-            VerticalBox {
-                padding: 0;
-                spacing: 8px;
-                height: 100px;
-                alignment: center;
-                HorizontalBox {
-                    padding: 0;
-                    height: 40px;
-                    spacing: 15px;
-                    alignment: start;
-
-                    Rectangle {
-                        width: 70px;
-                        padding: 0;
-                        Text {
-                            text: "From:";
-                            color: #4b5563;
-                        }
-                    }
-
-                    start-date := Datepicker {
-                        selected_date: selected_date;
-                    }
-                }
-
-                HorizontalBox {
-                    padding: 0;
-                    spacing: 15px;
-                    height: 40px;
-                    alignment: start;
-
-                    Rectangle {
-                        width: 70px;
-                        padding: 0;
-                        Text {
-                            text: "To:";
-                            color: #4b5563;
-                        }
-                    }
-
-                    end-date := Datepicker {
-                        selected_date: start-date.selected_date;
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            height: 150px;
-            padding: 0;
-            width: 2px;
-            background: #2E3445;
-        }
-
-      // Time Period Section
-      VerticalBox {
-            padding: 0;
-            spacing: 5px;
-            height: 150px;
-            width: 250px;
-            alignment: start;
-            HorizontalBox {
-                height: 40px;
-                width: 120px;
-                alignment: start;
-                padding: 0;
-                Text {
-                    text: "Select time period:";
-                    font-size: 18px;
-                    font-weight: 500;
-                    color: #2E3445;
-                    horizontal-alignment: left;
-                }
-            }
-
-            VerticalBox {
-                height: 100px;
-                padding: 0;
-                spacing: 8px;
-                alignment: center;
-                HorizontalBox {
-                    padding: 0;
-                    spacing: 15px;
-                    height: 40px;
-                    alignment: start;
-                    Rectangle {
-                        padding: 0;
-                        width: 70px;
-                        Text {
-                            text: "From:";
-                            color: #4b5563;
-                        }
-                    }
-
-                    start-time := Timepicker {
-                        button_text: "HH:MM";
-                    }
-                }
-
-                HorizontalBox {
-                    padding: 0;
-                    spacing: 15px;
-                    height: 40px;
-                    alignment: start;
-                    Rectangle {
-                        padding: 0;
-                        width: 70px;
-                        Text {
-                            text: "To:";
-                            color: #4b5563;
-                        }
-                    }
-
-                    end-time := Timepicker {
-                        button_text: "HH:MM";
-                    }
-                }
-            }
-        }
-    }
-
-    HorizontalBox {
-        alignment: end;
-        padding: 0;
-        padding-top: 20px;
-        width: 100%;
-        CustomButton {
-            text: "Cancel";
-            width: 100px;
-            height: 36px;
-            mouse-cursor: pointer;
-            clicked => {
-                request-close();
-            }
-        }
-
-        CustomButton {
-            text: "Create";
-            width: 100px;
-            height: 36px;
-            enabled: staticFormValid;
-            mouse-cursor: staticFormValid ? pointer : default;
-            border-color: #2E3445;
-            background: staticFormValid ? #2E3445 : #D5E2FA;
-            color: staticFormValid ? #D5E2FA : #2e344585;
-            clicked => {
-                collect-static-event-data(
+            CustomButton {
+                text: "Create";
+                width: 100px;
+                height: 36px;
+                enabled: staticFormValid;
+                mouse-cursor: staticFormValid ? pointer : default;
+                border-color: #2E3445;
+                background: staticFormValid ? #2E3445 : #D5E2FA;
+                color: staticFormValid ? #D5E2FA : #2e344585;
+                clicked => {
+                    collect-static-event-data(
                   event-name.text,
                   event-description.text,
                   start-date.selected_date,
                   end-date.selected_date,
                   start-time.selected_time,
                   end-time.selected_time);
-                request-close();
+                    request-close();
+                }
             }
         }
     }
