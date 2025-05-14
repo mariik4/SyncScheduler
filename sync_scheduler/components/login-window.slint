@@ -19,10 +19,11 @@ component LoginWindow inherits Rectangle {
     property <bool> staticFormValid: loginValid && passValid;
     property <bool> registrationFormValid: registrationValid && new_passValid;
 
-    callback collect-login(login: string, password: string);
-    callback collect-registration(login: string, password: string);
+    callback check_user(login: string, password: string);
+    callback create_user(login: string, password: string);
     callback request-close();
-
+    callback close_login();
+    
     TabWidget {
         width: 100%;
         height: 100%;
@@ -90,7 +91,7 @@ component LoginWindow inherits Rectangle {
                         mouse-cursor: pointer;
                         clicked => {
 
-                            collect-login(
+                            check_user(
                                 login-name.text,
                                 passw.text
                             );
@@ -165,12 +166,18 @@ component LoginWindow inherits Rectangle {
                         mouse-cursor: pointer;
                         clicked => {
 
-                            collect-registration(
+                            create_user(
                                 registration_name.text,
                                 newpassw.text
                             );
 
-                            request-close();
+                            if (registration_name.text == "" || newpassw.text == "") {
+                                // Display error message (e.g., log it or show a popup)
+                                //eprintln!("Error: Registration failed due to invalid input");
+                            } else {
+                                //close_login();
+                            }                       
+                            //request-close();
                         }
                     }
                 }

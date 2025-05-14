@@ -1,5 +1,6 @@
 import { VerticalBox, HorizontalBox, GridBox, Button, Date, Time, ScrollView } from "std-widgets.slint";
 import { ModalWindow } from "modal-window.slint";
+import { LoginWindow } from "login-window.slint";
 import { CustomButton } from "custom-button.slint";
 import { SelectedDateSidebar, SlintEvent } from "selected-date-sidebar.slint";
 import { SlintSlot, SuggestDynamicList } from "events/suggest-dynamics-list.slint";
@@ -184,9 +185,37 @@ component ActionsMenu inherits Rectangle {
     callback collect-static-event-data(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     callback create-dynamic-event(slot_id: string);
+
+    callback create_user(login: string, password: string);
+    callback check_user(login: string, password: string);
+
+    callback close_login();
     padding: 0;
     height: 35px;
     width: 100%;
+
+    loginpage := PopupWindow {
+        close-policy: no-auto-close;
+
+        LoginWindow {
+            check_user(login,password) => {
+                root.check_user(login,password);
+            }
+            create_user(login,password) => {
+                root.create_user(login,password);
+            }
+
+            close_login => {
+                loginpage.close();
+            }
+        }
+
+        x: 200px;
+        y: 130px;
+        height: 700px;
+        width: 700px;
+        padding: 0px;
+    }
 
     popup := PopupWindow {
         close-policy: close-on-click-outside;
@@ -247,6 +276,10 @@ component ActionsMenu inherits Rectangle {
             }
         }
     }
+
+    init => {
+        loginpage.show();
+    }
 }
 
 export component CalendarWindow inherits Window {
@@ -276,6 +309,10 @@ export component CalendarWindow inherits Window {
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int]);
     callback create-dynamic-event(slot_id: string);
 
+    callback create_user(login: string, password: string);
+    callback check_user(login: string, password: string);
+
+    callback close_login();
     HorizontalBox {
         width: 100%;
         height: 100%;
@@ -315,6 +352,15 @@ export component CalendarWindow inherits Window {
                     }
                     create-dynamic-event(slot-id) => {
                         root.create-dynamic-event(slot-id)
+                    }
+                    check_user(login,password) => {
+                        root.check_user(login,password);
+                    }
+                    create_user(login,password) => {
+                        root.create_user(login,password);
+                    }
+                    close_login() => {
+                        root.close_login();
                     }
                 }
 

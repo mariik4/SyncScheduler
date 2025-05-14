@@ -73,6 +73,37 @@ fn main() {
         calendar_render(&window, calendar_state);
     });
 
+    let weak_window = calendar_window.as_weak();
+    let calendar_state_ref_clone = Rc::clone(&calendar_state);
+    calendar_window.on_create_user(move |username, password| {
+        let window = weak_window.unwrap();
+        //let mut calendar_state = calendar_state_ref_clone.borrow_mut();
+        let handle = {
+            let state = calendar_state_ref_clone.borrow_mut();
+            state.get_tokio_handler()
+        };
+
+        let state_rc = calendar_state_ref_clone.clone();
+
+        let _ = slint::spawn_local(async move {
+            let join = handle.spawn(async move {
+                create_new_user_on_db(username.to_string(), password.to_string()).await
+            });
+
+            match join.await {
+                Ok(Ok(_)) => {
+                    println!("User created successfully");
+                    window.on_close_login(|| {});
+                }
+                Ok(Err(e)) => eprintln!("Error creating user: {}", e),
+                Err(join_e) => eprintln!("Tokio task failed: {}", join_e),
+            }
+
+            let state = state_rc.borrow_mut();
+            calendar_render(&window, state);
+        });
+    });
+
     let calendar_state_clone = Rc::clone(&calendar_state);
     let weak_window = calendar_window.as_weak();
     calendar_window.on_collect_static(

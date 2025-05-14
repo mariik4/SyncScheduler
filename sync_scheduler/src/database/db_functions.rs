@@ -132,8 +132,8 @@ pub async fn get_events_in_range(
 
 pub async fn create_new_user_on_db(
     username: String,
-    first_name: String,
-    last_name: String,
+    // first_name: String,
+    // last_name: String,
     password: String,
 ) -> Result<User, Error> {
     let url = std::env::var("DB_URL").unwrap();
@@ -143,19 +143,34 @@ pub async fn create_new_user_on_db(
     let newUser = User {
         id: uuid,
         username: username.clone(),
-        first_name: first_name.clone(),
-        last_name: last_name.clone(),
+        first_name: username.clone(),
+        last_name: username.clone(),
         password: password.clone(),
     };
+
+    let check_user = sqlx::query_as::<_, User>(
+        "SELECT id, username, first_name, last_name, password
+        FROM users WHERE username = $1",
+    )
+    .bind(&username)
+    .fetch_one(&pool)
+    .await;
+
+    if check_user.is_err() {
+        // User does not exist, proceed to create a new one
+    } else {
+        // User exists, return an error
+        return Err(Error::InvalidArgument("User already exists".to_string()));
+    }
 
     sqlx::query(
         "INSERT INTO users (id, username, first_name, last_name, password )
         VALUES ($1, $2, $3, $4, $5)",
     )
     .bind(uuid)
-    .bind(username)
-    .bind(first_name)
-    .bind(last_name)
+    .bind(&username)
+    .bind(&username)
+    .bind(&username)
     .bind(password)
     .execute(&pool)
     .await?;
