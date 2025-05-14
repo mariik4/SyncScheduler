@@ -16,11 +16,7 @@ pub fn create_dynamic_event_callback(
     let (event_data, slot_data) = {
         let slots_state = slots_rc.borrow();
 
-        let slot = slots_state
-            .slots
-            .iter()
-            .find(|s| s.id == slot_id.to_string())
-            .cloned();
+        let slot = slots_state.slots.iter().find(|s| s.id == slot_id).cloned();
 
         let event_data = slots_state.event_data.clone().expect("Missing event data");
         (event_data, slot)

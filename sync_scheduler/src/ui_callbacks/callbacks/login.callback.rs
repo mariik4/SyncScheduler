@@ -12,12 +12,12 @@ pub fn login_callback(
     let calendar_clone = calendar_state.clone();
 
     let _ = slint::spawn_local(async move {
-        let join_handle = handler
-            .spawn(async move { check_login_of_user(username.into(), password.into()).await });
+        let join_handle =
+            handler.spawn(async move { check_login_of_user(username, password).await });
 
-        let mut calendar_state = calendar_clone.borrow_mut();
         match join_handle.await {
             Ok(Ok(user)) => {
+                let mut calendar_state = calendar_clone.borrow_mut();
                 calendar_state.login_user(&user);
                 after_login_register_render(&window, &user);
                 calendar_render(&window, calendar_state);

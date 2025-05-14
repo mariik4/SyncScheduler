@@ -68,7 +68,7 @@ pub fn register_ui_callbacks(
         let weak_window = window.as_weak();
         let calendar_state_clone = Rc::clone(&calendar_state);
         window.on_select_date(move |day_id| {
-            select_date_callback(&weak_window, &calendar_state_clone, day_id.into());
+            select_date_callback(&weak_window, &calendar_state_clone, day_id);
         });
     }
 

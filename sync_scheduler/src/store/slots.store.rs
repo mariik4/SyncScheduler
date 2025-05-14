@@ -1,5 +1,5 @@
 #[derive(Clone, Debug)]
-struct Slot {
+pub struct Slot {
     id: String,
     start_time: NaiveTime,
     end_time: NaiveTime,
@@ -24,9 +24,9 @@ pub enum SlotsStatus {
 #[derive(Clone, Debug)]
 pub struct SlotsState {
     pub status: SlotsStatus,
-    pub slots: Vec<Slot>,
+    slots: Vec<Slot>,
     pub error_message: Option<String>,
-    pub event_data: Option<DynamicEventPreData>,
+    event_data: Option<DynamicEventPreData>,
 }
 
 impl SlotsState {
@@ -39,26 +39,26 @@ impl SlotsState {
         }
     }
 
-    pub fn set_pending(&mut self, event_data: DynamicEventPreData) {
+    fn set_pending(&mut self, event_data: DynamicEventPreData) {
         self.status = SlotsStatus::Pending;
         self.slots.clear();
         self.error_message = None;
         self.event_data = Some(event_data);
     }
 
-    pub fn set_success(&mut self, slots: Vec<Slot>) {
+    fn set_success(&mut self, slots: Vec<Slot>) {
         self.status = SlotsStatus::Success;
         self.slots = slots;
         self.error_message = None;
     }
 
-    pub fn set_failed(&mut self, msg: impl Into<String>) {
+    fn set_failed(&mut self, msg: impl Into<String>) {
         self.status = SlotsStatus::Failed;
         self.slots.clear();
         self.error_message = Some(msg.into());
     }
 
-    pub fn reset(&mut self) {
+    fn reset(&mut self) {
         self.status = SlotsStatus::Success;
         self.slots.clear();
         self.error_message = None;

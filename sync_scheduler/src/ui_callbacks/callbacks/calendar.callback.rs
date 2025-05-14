@@ -25,6 +25,6 @@ pub fn select_date_callback(
 ) {
     let window = weak_window.unwrap();
     let mut state = calendar_state.borrow_mut();
-    state.select_date(&day_id.to_string());
+    state.select_date(day_id.as_ref());
     calendar_render(&window, state);
 }

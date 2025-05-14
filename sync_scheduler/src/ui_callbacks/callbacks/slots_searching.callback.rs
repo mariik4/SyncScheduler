@@ -18,8 +18,8 @@ pub fn slot_searching_callback(
     let slots_rc = slots_state.clone();
     {
         let event_data = DynamicEventPreData {
-            name: name.into(),
-            description: description.into(),
+            name,
+            description,
             priority: priority as i64,
         };
         let mut slots_state = slots_rc.borrow_mut();
@@ -46,13 +46,13 @@ pub fn slot_searching_callback(
         .collect();
 
     let _ = slint::spawn_local(async move {
-        let mut slots_state = slots_rc.borrow_mut();
-
         let join_result = handle
             .spawn(async move {
                 search_for_slots(duration, weekdays, range_start, range_end, user_id).await
             })
             .await;
+
+        let mut slots_state = slots_rc.borrow_mut();
         match join_result {
             Ok(Ok(slots)) => {
                 slots_state.set_success(slots);

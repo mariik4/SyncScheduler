@@ -14,20 +14,12 @@ pub fn registration_callback(
     let calendar_rc = calendar_state.clone();
 
     let _ = slint::spawn_local(async move {
-        let join_handle = handle.spawn(async move {
-            create_new_user_on_db(
-                username.into(),
-                name.into(),
-                surname.into(),
-                password.into(),
-            )
-            .await
-        });
-
-        let mut calendar_state = calendar_rc.borrow_mut();
+        let join_handle = handle
+            .spawn(async move { create_new_user_on_db(username, name, surname, password).await });
 
         match join_handle.await {
             Ok(Ok(user)) => {
+                let mut calendar_state = calendar_rc.borrow_mut();
                 calendar_state.login_user(&user);
                 after_login_register_render(&window, &user);
                 calendar_render(&window, calendar_state);

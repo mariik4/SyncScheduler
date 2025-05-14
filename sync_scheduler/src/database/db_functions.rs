@@ -1,7 +1,6 @@
 use sqlx::postgres::Postgres;
-use sqlx::types;
+use sqlx::Error;
 use sqlx::Pool;
-use sqlx::{Connection, Error, PgConnection};
 use std::env;
 
 #[derive(sqlx::FromRow, Debug)]
@@ -131,7 +130,7 @@ pub async fn create_new_user_on_db(
 
     let pool = Pool::<Postgres>::connect(&url).await?;
     let uuid = Uuid::new_v4();
-    let newUser = User {
+    let new_user = User {
         id: uuid,
         username: username.clone(),
         first_name: first_name.clone(),
@@ -151,7 +150,7 @@ pub async fn create_new_user_on_db(
     .execute(&pool)
     .await?;
 
-    Ok(newUser)
+    Ok(new_user)
 }
 
 pub async fn add_event_to_db(event: &Event) -> Result<(), Error> {
