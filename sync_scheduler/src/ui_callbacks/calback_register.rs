@@ -4,6 +4,7 @@ include!("./callbacks/create_static_event.callback.rs");
 include!("./callbacks/create_dynamic_event.callback.rs");
 include!("./callbacks/slots_searching.callback.rs");
 include!("./callbacks/calendar.callback.rs");
+include!("./callbacks/logout.callback.rs");
 
 pub fn register_ui_callbacks(
     window: &CalendarWindow,
@@ -139,5 +140,14 @@ pub fn register_ui_callbacks(
                 );
             },
         );
+    }
+
+    // registrate callback for the user logout
+    {
+        let weak_window = window.as_weak();
+        let calendar_state_clone = Rc::clone(&calendar_state);
+        window.on_logout(move || {
+            logout_callback(&weak_window, &calendar_state_clone);
+        })
     }
 }

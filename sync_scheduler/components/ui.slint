@@ -188,6 +188,7 @@ component ActionsMenu inherits Rectangle {
     callback create_static_event(name: string, description: string, start_date: Date, end_date: Date, start_time: Time, end_time: Time);
     callback start_slots_searching(name: string, description: string, duration: Time, priority: int, weekdays: [int], range_start: Date, range_end: Date);
     callback create-dynamic-event(slot_id: string);
+    callback logout();
     padding: 0;
     height: 40px;
     width: 100%;
@@ -226,19 +227,29 @@ component ActionsMenu inherits Rectangle {
             alignment: center;
             padding: 0;
             height: 40px;
-            Rectangle {
+            logout_btn := TouchArea {
                 width: 36px;
-                height: 40px;
+                height: 36px;
                 padding: 0;
-                border-radius: 36px;
-                border-width: 2px;
-                border-color: #2E3445;
+                mouse-cursor: pointer;
+                Rectangle {
+                    width: 36px;
+                    height: 36px;
+                    padding: 0;
+                    border-radius: 36px;
+                    border-width: 2px;
+                    border-color: #2E3445;
 
-                Text {
-                    text: user_icon;
-                    font-size: 14px;
-                    font-weight: 800;
-                    color: #2E3445;
+                    Text {
+                        text: user_icon;
+                        font-size: 14px;
+                        font-weight: 800;
+                        color: #2E3445;
+                    }
+                }
+
+                clicked => {
+                    root.logout();
                 }
             }
         }
@@ -280,14 +291,13 @@ component ActionsMenu inherits Rectangle {
 export component CalendarWindow inherits Window {
     preferred-width: 1200px;
     preferred-height: 1000px;
-    full-screen: true;
     padding: 0;
     padding-left: 2px;
     background: #dddee2;
 
-    in property <bool> is_login_layout_open: true;
+    in-out property <bool> is_login_layout_open: true;
     in property <string> login_error_msg;
-    in property <string> user_icon;
+    in-out property <string> user_icon;
 
     in property <[string]> day-names: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     in property <[[SlintDay]]> weeks;
@@ -301,8 +311,8 @@ export component CalendarWindow inherits Window {
     in property <Date> dynamic_range_start;
     in property <Date> dynamic_range_end;
 
-    in property <[SlintEvent]> events;
-    in property <bool> is_events_fetching_error;
+    in-out property <[SlintEvent]> events;
+    in-out property <bool> is_events_fetching_error;
     callback next-month;
     callback previous-month;
     callback select_date(string);
@@ -311,6 +321,13 @@ export component CalendarWindow inherits Window {
     callback create-dynamic-event(slot_id: string);
     callback collect-login(login: string, password: string);
     callback collect-registration(name: string, surname: string, username: string, password: string);
+    callback logout();
+
+    function on_logout_reset() {
+        events = [];
+        is_events_fetching_error = false;
+        user_icon = "";
+    }
 
     login_layout := Rectangle {
         x: 0;
@@ -330,7 +347,7 @@ export component CalendarWindow inherits Window {
             }
         }
 
-        LoginModal {
+        login-modal := LoginModal {
             z: 300;
             x: parent.width / 2 - self.width / 2;
             y: parent.height / 2 - self.height / 2;
@@ -385,6 +402,11 @@ export component CalendarWindow inherits Window {
                     }
                     create-dynamic-event(slot-id) => {
                         root.create-dynamic-event(slot-id)
+                    }
+                    logout => {
+                        is_login_layout_open = true;
+                        on_logout_reset();
+                        root.logout()
                     }
                 }
 
